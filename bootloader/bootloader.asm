@@ -5,6 +5,7 @@
 
 WHITE_ON_BLUE EQU 17H
 READ_SUCCESS EQU 0H
+ELF_OFFSET EQU 18h
 
 bits 16
 start: jmp boot
@@ -12,6 +13,7 @@ start: jmp boot
    ;; constant and variable definitions
 bootMsg db "Booting the Damsteen Operating System!", 0
 errMsg db "Error reading disk - terminated", 0
+endMsg db "-- System execution completed - system shutdown", 0
 cursor_X db 0
 cursor_Y db 0
 
@@ -23,7 +25,7 @@ boot:
   call PrintBootMsg
   call ReadKernel
   call ExecKernel
-
+  call PrintEndMsg
   
   hlt	; halt the system
 
@@ -85,7 +87,7 @@ ReadError:
 ExecKernel:
    mov ax, [cursor_X]
    mov cx, [cursor_Y]
-   call 0x50:0x0
+   jmp [500h + ELF_OFFSET]
    ret
 
 %include "../io.asm"
@@ -99,6 +101,14 @@ PrintBootMsg:
    
    ; Print
    mov si, bootMsg
+   call PrintLn
+   
+   ret
+   
+; Print end message
+PrintEndMsg:
+   ; Print
+   mov si, endMsg
    call PrintLn
    
    ret
