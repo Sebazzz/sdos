@@ -21,6 +21,7 @@ end
 define dbg-os
 	symbol-file build/os/os
 	layout split
+	b kinit
 	b kmain
 end
 
@@ -32,4 +33,10 @@ dbg-bootloader
 set architecture i8086
 connect
 
-b *0x7c00
+# --- Common break points
+
+# Bootloader start
+#b *0x7c00 
+
+# Just before jumping to sector 2
+#b *0x7c56

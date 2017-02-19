@@ -1,4 +1,4 @@
-ENTRY(kmain);
+ENTRY(kinit);
 OUTPUT_FORMAT(elf32-i386);
 
 PHDRS { 

@@ -7,6 +7,7 @@ Experimental operating system based on fiddling with assembly and C.
 ## Prequisites
 
 OS: Debian or Ubuntu on Windows.
+GCC 4.9
 
 ```
 apt-get install make nasm qemu

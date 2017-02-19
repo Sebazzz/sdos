@@ -1,7 +1,7 @@
-CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3
-ASMCFLAGS= -f elf32 -F dwarf -g
-
+CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m16 -ggdb3
+ASMCFLAGS= -f elf -F dwarf -g
 LDFLAGS= --nmagic -m elf_i386 --script=os.lds
+
 BUILD_DIR=../build/os
 BUILD_DIR_IMM=$(BUILD_DIR)/imm
 BUILD_DIR_IMM_ASM=$(BUILD_DIR_IMM)/asm
@@ -24,13 +24,10 @@ prepdir:
 	mkdir -p $(BUILD_DIR_IMM_ASM)
 
 $(OS_C_OBJS): $(OS_C_SRCS) $(OS_ASM_OBJS) prepdir
-	gcc $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR_IMM_ASM)/io.o: io.asm prepdir
-	nasm $(ASMCFLAGS) io.asm -o $(BUILD_DIR_IMM_ASM)/io.o
-	
-$(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
-	nasm $(ASMCFLAGS) kinit.asm -o $(BUILD_DIR_IMM_ASM)/kinit.o
+$(OS_ASM_OBJS): $(OS_ASM_SRCS) prepdir
+	nasm $(ASMCFLAGS) $< -o $@
 	
 $(BUILD_OUTPUT): $(OS_C_OBJS) $(OS_ASM_OBJS)
 	ld $(LDFLAGS) $(OS_OBJS) -o $@
