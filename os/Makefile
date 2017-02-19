@@ -11,4 +11,4 @@ $(BUILD_DIR)/%.o: %.asm
 	nasm $(CFLAGS) $< -o $@
 
 clean:
-	rm -f $(BUILD_DIR)/$(BOOTLOADER_OBJS)
+	rm -f $(BUILD_DIR)/*
