@@ -1,3 +1,6 @@
+#include "io.h"
+
 void kmain() {
-	//while(1);
+    putchr('!', 5);
+	while(1);
 }

@@ -1,19 +1,38 @@
 CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3
-LDFLAGS= -m elf_i386 -nmagic -Tos.lds
+ASMCFLAGS= -f elf32 -F dwarf -g
+
+LDFLAGS= --nmagic -m elf_i386 --script=os.lds
 BUILD_DIR=../build/os
 BUILD_DIR_IMM=$(BUILD_DIR)/imm
+BUILD_DIR_IMM_ASM=$(BUILD_DIR_IMM)/asm
+BUILD_DIR_IMM_C=$(BUILD_DIR_IMM)/c
 BUILD_OUTPUT=$(BUILD_DIR)/os
 
-OS_SRCS := $(wildcard *.c)
-OS_OBJS := $(patsubst %.c, $(BUILD_DIR_IMM)/%.o, $(OS_SRCS))
+OS_C_SRCS := $(wildcard *.c)
+OS_C_OBJS := $(patsubst %.c, $(BUILD_DIR_IMM_C)/%.o, $(OS_C_SRCS))
+
+OS_ASM_SRCS := $(wildcard *.asm)
+OS_ASM_OBJS := $(patsubst %.asm, $(BUILD_DIR_IMM_ASM)/%.o, $(OS_ASM_SRCS))
+
+OS_SRCS := $(OS_C_SRCS) $(OS_ASM_SRCS)
+OS_OBJS := $(OS_C_OBJS) $(OS_ASM_OBJS)
 
 all: $(BUILD_OUTPUT)
 
-$(BUILD_DIR_IMM)/%.o: %.c
-	mkdir -p $(BUILD_DIR_IMM)
+prepdir:
+	mkdir -p $(BUILD_DIR_IMM_C)
+	mkdir -p $(BUILD_DIR_IMM_ASM)
+
+$(OS_C_OBJS): $(OS_C_SRCS) $(OS_ASM_OBJS) prepdir
 	gcc $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR_IMM_ASM)/io.o: io.asm prepdir
+	nasm $(ASMCFLAGS) io.asm -o $(BUILD_DIR_IMM_ASM)/io.o
 	
-$(BUILD_OUTPUT): $(OS_OBJS)
+$(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
+	nasm $(ASMCFLAGS) kinit.asm -o $(BUILD_DIR_IMM_ASM)/kinit.o
+	
+$(BUILD_OUTPUT): $(OS_C_OBJS) $(OS_ASM_OBJS)
 	ld $(LDFLAGS) $(OS_OBJS) -o $@
 
 clean:

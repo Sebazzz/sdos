@@ -21,11 +21,15 @@ end
 define dbg-os
 	symbol-file build/os/os
 	layout split
+	b kmain
+end
+
+define connect
+	target remote localhost:26000
 end
 
 dbg-bootloader
 set architecture i8086
-target remote localhost:26000
+connect
 
 b *0x7c00
-b kmain

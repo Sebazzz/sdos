@@ -90,7 +90,7 @@ ExecKernel:
    jmp [500h + ELF_OFFSET]
    ret
 
-%include "../io.asm"
+%include "../io.incl.asm"
    
 ; Print the boot message
 PrintBootMsg:
