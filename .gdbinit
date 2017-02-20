@@ -16,12 +16,21 @@ define dbg-bootloader
 	symbol-file build/bootloader/bootloader.o.elf
 	layout asm
 	layout reg
+	set architecture i8086
+	
+	# Bootloader start
+	b *0x7c00
+	
+	# Just before executing kernel, enable protected mode
+	b *0x7cf4
 end
 
 define dbg-os
+	set architecture i386:intel
 	symbol-file build/os/os
 	layout split
 	b kinit
+	b *0x625
 	b kmain
 end
 
@@ -30,13 +39,8 @@ define connect
 end
 
 dbg-bootloader
-set architecture i8086
+#dbg-os
 connect
 
-# --- Common break points
 
-# Bootloader start
-#b *0x7c00 
 
-# Just before jumping to sector 2
-#b *0x7c56

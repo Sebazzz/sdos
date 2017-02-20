@@ -1,8 +1,6 @@
-#include "io.h"
+#include "kinit.h"
 
 void kmain() {
-	putchr('!', 5);
-	
-	
-	done();
+	int nop = 0;
+	nop++;
 }
