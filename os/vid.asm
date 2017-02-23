@@ -24,6 +24,8 @@ global vid_reset_cursor
 global vid_advance_cursor
 global vid_print_string
 global vid_put_char
+global vid_advance_line
+global vid_print_string_line
 
 ; vid_clear
 ; Clears the screen using the current set attribute. Resets cursor position.
@@ -77,17 +79,21 @@ vid_advance_cursor:
 	mov eax, [cursor_X]
 	add eax, 1
 	cmp eax, VGA_WIDTH
-	jge .next_line ; done if still below VGA_WIDTH
+	jge vid_advance_line ; done if still below VGA_WIDTH
 	mov [cursor_X], eax
-	jmp .done
-	
-.next_line:
+	ret
+
+; vid_advance_line
+; Advances the cursor to the next line, resets X position.
+;
+; Input: void
+; Output: void
+vid_advance_line:
 	; in this case we need to increase cursor_Y
 	mov eax, [cursor_Y]
 	add eax, 1
+	mov [cursor_Y], dword eax
 	mov [cursor_X], dword 0
-	
-.done:
 	ret
 
 ; vid_put_char
@@ -101,7 +107,6 @@ vid_put_char:
 	
 ; vid_put_char_internal
 ; Output single character to current position
-;
 ;
 ; Input: char in [ecx]
 ; Output: screen_attribute in ecx
@@ -143,9 +148,26 @@ vid_print_string:
 	.done:
 	pop esi
 	ret
+
+; vid_print_string_line
+; Output zero-terminated 1-byte-per-char string to current position on screen and
+; advances to the next line.
+;
+; Input: char*
+; Output: void
+vid_print_string_line:
+	mov eax, param_ns(0)
+	
+	push eax
+	call vid_print_string
+	pop eax
+	
+	call vid_advance_line
+	ret
+
 end:
 
 section .data
 screen_attr dd WHITE_ON_BLUE
-cursor_X db 0
-cursor_Y db 0
+cursor_X dd 0
+cursor_Y dd 0

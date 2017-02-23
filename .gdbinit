@@ -33,11 +33,11 @@ define dbg-os
 	symbol-file build/os/imm/asm/vid.o
 	symbol-file build/os/os
 	layout split
-	b kinit
+	#b kinit
 	b kmain
 	b kexec_done
 	b kexec_done.done
-	b vid_print_string
+	b vid_print_string_line
 end
 
 define connect

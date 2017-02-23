@@ -30,4 +30,14 @@ void vid_put_char(char character);
 /**
  * Output zero-terminated string to current position on screen.
  */
- void vid_print_string(const char* str);
+void vid_print_string(const char* str);
+
+/**
+ * Output zero-terminated string to current position on screen and advances to the next line.
+ */
+void vid_print_string_line(const char* str);
+
+/**
+*  Advances the cursor to the next line, resets X position.
+*/
+void vid_advance_line();
