@@ -1,4 +1,4 @@
-CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3 -Wall
+CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3 -Wall -Werror
 ASMCFLAGS= -f elf32 -F dwarf -g
 LDFLAGS= --nmagic -m elf_i386 --script=os.lds
 
