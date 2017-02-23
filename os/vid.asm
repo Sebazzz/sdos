@@ -38,7 +38,7 @@ vid_clear:
 .vid_loop:
 	mov dword [eax], ASCII_SPACE
 	mov ecx, [screen_attr]
-	mov dword [eax + 1], ecx
+	mov [eax + 1], byte ecx
 	
 	add eax, 2
 	cmp eax, VGA_END
@@ -121,6 +121,7 @@ vid_put_char_internal:
 	mov [eax], ecx 						; set char
 	
 	mov ecx, [screen_attr]				; color
+	
 	mov dword [eax + 1], ecx
 	
 	jmp vid_advance_cursor	
@@ -136,8 +137,7 @@ vid_print_string:
 	mov esi, param_ns(1)	; Grab incoming pointer
 	
 	.loop:
-	mov ecx, [esi]			; Store character for v_p_c_i
-	and ecx, 0xFF 			; Not necessary, but for debugging clear upper bytes
+	movzx ecx, byte [esi]			; Store character for v_p_c_i, clear upper bytes
 	cmp ecx, 0x0			; Check for \0 character
 	je .done
 	
@@ -168,6 +168,6 @@ vid_print_string_line:
 end:
 
 section .data
-screen_attr dd WHITE_ON_BLUE
+screen_attr db WHITE_ON_BLUE
 cursor_X dd 0
 cursor_Y dd 0
