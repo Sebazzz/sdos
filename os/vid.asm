@@ -145,6 +145,7 @@ vid_print_string:
 	ret
 end:
 
+section .data
 screen_attr dd WHITE_ON_BLUE
 cursor_X db 0
 cursor_Y db 0

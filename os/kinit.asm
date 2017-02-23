@@ -18,6 +18,10 @@ stack_top:
 section .text
 global kinit
 global kexec_done
+
+global sleep_ticks
+global sleep
+
 extern vid_clear
 extern vid_print_string
 extern vid_set_attribute
@@ -40,7 +44,7 @@ print_halt_message:
 kinit:
 	nop
 	
-	;call vid_clear
+	call vid_clear
 	
 	nop
 	
@@ -62,7 +66,7 @@ kinit:
 	nop
 	
 	extern kmain
-	;call kmain
+	call kmain
 	
 	nop
 	nop
@@ -79,6 +83,26 @@ kexec_done:
 .done:
 	hlt
 	jmp .done
+
+; sleep
+; sleep_ticks
+; Sleeps for a number of ticks (DOES NOT WORK YET ACCURATELY)
+;
+; Input: unsigned int ticks
+; Output: nothing
+sleep:
+sleep_ticks:
+	mov eax, 100000
+	mul dword param_ns(0)
+	pause
+.loop:
+	dec eax
+	cmp eax, 0x0
+	pause
+	jne .loop
+	ret
+
 end:
 
+section .rodata
 endMsg db "@@ System execution completed - system shutdown", 0
