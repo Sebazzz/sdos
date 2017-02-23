@@ -1,3 +1,3 @@
 #pragma once
 
-extern void done(void);
+extern void kexec_done(void);

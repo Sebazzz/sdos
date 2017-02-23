@@ -6,9 +6,10 @@
 WHITE_ON_BLUE EQU 17H
 READ_SUCCESS EQU 0H
 ELF_OFFSET EQU 18h
+KERNEL_LOCATION EQU 600h
 
-bits 16
-start: jmp boot
+[bits 16]
+start: jmp word boot
 
 	;; constant and variable definitions
 bootMsg db "Booting the Damsteen Operating System!", 0
@@ -64,25 +65,32 @@ init_gfx:
 	mov dl, 00h
 	call MovCursor
 	
+	; Disable cursor
+	mov ah, 01h
+	mov ch, 00100000b
+	mov cl, 00000000b
+	int 0x10
+	
 	ret
 	
 	; returns target address in ah
 read_kernel:
-	mov ax, 0x50
+	mov cx, 0x3		; retry count
 	
-	; set buffer to read to
+.read_loop:
+	mov ax, 0x50	; set buffer to read to
 	
 	mov es, ax
 	xor bx, bx
 	
-	mov al, 2 ; read two sectors
-	mov ch, 0 ; track 0
-	mov cl, 2 ; sector to read
-	mov dh, 0 ; head number
-	mov dl, 0 ; drive number
+	mov al, 4		; read two sectors
+	mov ch, 0		; track 0
+	mov cl, 2		; sector to read
+	mov dh, 0		; head number
+	mov dl, 0		; drive number
 	
-	mov ah, 2 ; method
-	int 13h ; BIOS
+	mov ah, 2		; function
+	int 13h			; Invoke BIOS
 	
 	; error handling
 	cmp ah, READ_SUCCESS
@@ -91,6 +99,10 @@ read_kernel:
 	ret
 
 .read_err:
+	sub cx, 1
+	cmp cx, 0
+	jne .read_loop
+	
 	; Print
 	mov si, errMsg
 	call PrintLn
@@ -101,7 +113,6 @@ read_kernel:
 exec_kernel:
 	cli
 	xor ax, ax 				; Clear AX register 
-	mov ax, cs
 	mov ds, ax 				; Set DS-register to 0 - used by lgdt
 	
 	lgdt [gdt_desc]			; Load the GDT descriptor
@@ -117,15 +128,14 @@ exec_kernel:
 	or eax, 1				; Set bit 0 (0xFE = Real Mode)
 	mov cr0, eax			; Copy the contents of EAX into CR0
 	
-	jmp (gdt_kernel_code - gdt_null) : exec_kernel_segment
+	jmp (gdt_kernel_code - gdt_null) : exec_kernel_32
 
-bits 32
-
-exec_kernel_segment:
+[bits 32]
+exec_kernel_32:
 	mov ax, gdt_kernel_data - gdt_null
 	mov ds, ax
 	mov ss, ax
-	jmp (gdt_kernel_code - gdt_null):625h
+	jmp (gdt_kernel_code - gdt_null):619h
 	hlt
 
 ;----------Global Descriptor Table----------;

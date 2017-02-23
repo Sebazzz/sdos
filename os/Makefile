@@ -1,4 +1,4 @@
-CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3
+CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3 -Wall
 ASMCFLAGS= -f elf32 -F dwarf -g
 LDFLAGS= --nmagic -m elf_i386 --script=os.lds
 
@@ -15,7 +15,7 @@ OS_ASM_SRCS := $(wildcard *.asm)
 OS_ASM_OBJS := $(patsubst %.asm, $(BUILD_DIR_IMM_ASM)/%.o, $(OS_ASM_SRCS))
 
 OS_SRCS := $(OS_C_SRCS) $(OS_ASM_SRCS)
-OS_OBJS := $(OS_C_OBJS) $(OS_ASM_OBJS)
+OS_OBJS := $(OS_ASM_OBJS) $(OS_C_OBJS)
 
 all: $(BUILD_OUTPUT)
 

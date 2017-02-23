@@ -21,25 +21,32 @@ define dbg-bootloader
 	# Bootloader start
 	b *0x7c00
 	
+	# Just before reading kernel
+	b *0x7cde
+	
 	# Just before executing kernel, enable protected mode
-	b *0x7cf4
+	b *0x7d08
 end
 
 define dbg-os
 	set architecture i386:intel
+	symbol-file build/os/imm/asm/vid.o
 	symbol-file build/os/os
 	layout split
 	b kinit
-	b *0x625
 	b kmain
+	b kexec_done
+	b kexec_done.done
+	b vid_print_string
 end
 
 define connect
 	target remote localhost:26000
 end
 
-dbg-bootloader
-#dbg-os
+set write on
+#dbg-bootloader
+dbg-os
 connect
 
 

@@ -3,6 +3,8 @@ BUILD_DIR=build
 BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.o
 OS=$(BUILD_DIR)/os/os
 DISK_IMG=$(BUILD_DIR)/disk.img
+QEMU=qemu-system-i386
+QEMUFLAGS=-machine q35 -fda $(DISK_IMG) -gdb tcp::26000
 
 all: bootdisk
 
@@ -23,10 +25,10 @@ bootdisk: build
 	dd conv=notrunc if=$(OS) of=$(DISK_IMG) bs=512 count=$$(($(shell stat --printf="%s" $(OS))/512)) seek=1
 
 debug: bootdisk
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -S
+	$(QEMU) $(QEMUFLAGS) -S
 
 run: bootdisk
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000
+	$(QEMU) $(QEMUFLAGS)
 
 clean:
 	make -C bootloader clean

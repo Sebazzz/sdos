@@ -1,6 +1,7 @@
-#include "kinit.h"
+#include "sdos.h"
+
+const char* message = "Cee says hello!";
 
 void kmain() {
-	int nop = 0;
-	nop++;
+	vid_print_string(message);
 }
