@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="bootloader\bootloader.asm" />
+    <None Include="bootloader\io.incl.asm" />
+    <None Include="os\kinit.asm" />
+    <None Include="os\vid.asm" />
+    <None Include=".gdbinit" />
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="LICENSE" />
+    <None Include="macro.incl.asm" />
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="os\base.h" />
+    <ClInclude Include="os\kinit.h" />
+    <ClInclude Include="os\sdos.h" />
+    <ClInclude Include="os\vid.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="os\kernel.c" />
+  </ItemGroup>
+</Project>
