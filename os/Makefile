@@ -26,6 +26,9 @@ prepdir:
 $(OS_C_OBJS): $(OS_C_SRCS) $(OS_ASM_OBJS) prepdir
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR_IMM_ASM)/__init.o: __init.asm prepdir
+	nasm $(ASMCFLAGS) __init.asm -o $@
+
 $(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
 	nasm $(ASMCFLAGS) kinit.asm -o $@
 

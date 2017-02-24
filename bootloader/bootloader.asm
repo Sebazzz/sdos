@@ -135,7 +135,7 @@ exec_kernel_32:
 	mov ax, gdt_kernel_data - gdt_null
 	mov ds, ax
 	mov ss, ax
-	jmp (gdt_kernel_code - gdt_null):619h
+	jmp (gdt_kernel_code - gdt_null):KERNEL_LOCATION
 	hlt
 
 ;----------Global Descriptor Table----------;
