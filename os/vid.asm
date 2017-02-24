@@ -36,9 +36,9 @@ vid_clear:
 	mov eax, VGA_ORIGIN
 	
 .vid_loop:
-	mov dword [eax], ASCII_SPACE
-	mov ecx, [screen_attr]
-	mov [eax + 1], byte ecx
+	mov byte [eax], ASCII_SPACE
+	mov cl, [screen_attr]
+	mov [eax + 1], cl
 	
 	add eax, 2
 	cmp eax, VGA_END
@@ -66,8 +66,8 @@ vid_reset_cursor:
 ; Inputs: unsigned integer
 ; Outputs: void
 vid_set_attribute:
-	mov eax, param_ns(0) ; previous fn stack
-	mov dword [screen_attr], eax
+	mov al, param_ns(0) ; previous fn stack
+	mov byte [screen_attr], al
 	ret
 
 ; vid_advance_cursor
@@ -118,11 +118,10 @@ vid_put_char_internal:
 	add eax, [cursor_X]
 	add eax, VGA_ORIGIN
 	
-	mov [eax], ecx 						; set char
+	mov byte [eax], cl 						; set char
 	
-	mov ecx, [screen_attr]				; color
-	
-	mov dword [eax + 1], ecx
+	mov cl, byte [screen_attr]				; color
+	mov byte [eax + 1], cl
 	
 	jmp vid_advance_cursor	
 	ret
