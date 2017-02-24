@@ -1,4 +1,4 @@
-CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3 -Wall -Werror
+CFLAGS= -ffreestanding -nostdlib -gdwarf-4 -m32 -ggdb3 -Wall -Wextra -Werror
 ASMCFLAGS= -f elf32 -F dwarf -g -w+all
 LDFLAGS= --nmagic -m elf_i386 --script=os.lds
 
@@ -28,6 +28,9 @@ $(OS_C_OBJS): $(OS_C_SRCS) $(OS_ASM_OBJS) prepdir
 
 $(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
 	nasm $(ASMCFLAGS) kinit.asm -o $@
+
+$(BUILD_DIR_IMM_ASM)/keyboard.o: keyboard.asm prepdir
+	nasm $(ASMCFLAGS) keyboard.asm -o $@
 	
 $(BUILD_DIR_IMM_ASM)/vid.o: vid.asm prepdir
 	nasm $(ASMCFLAGS) vid.asm -o $@
