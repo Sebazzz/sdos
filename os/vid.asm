@@ -161,7 +161,7 @@ vid_print_string_line:
 	call vid_print_string
 	pop eax
 	
-	call vid_advance_line
+	jmp vid_advance_line
 	ret
 
 end:
