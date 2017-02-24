@@ -2,7 +2,7 @@ CFLAGS= -f elf -F dwarf -g
 LDFLAGS= -m elf_i386 -T bootloader.lds
 BUILD_DIR=../build/bootloader
 
-BOOTLOADER_SRCS := $(wildcard *.asm)
+BOOTLOADER_SRCS := bootloader.asm
 BOOTLOADER_OBJS := $(patsubst %.asm, $(BUILD_DIR)/%.o, $(BOOTLOADER_SRCS))
 
 all: $(BOOTLOADER_OBJS)

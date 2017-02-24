@@ -28,7 +28,7 @@ boot:
   
   hlt	; halt the system - though we don't expect to come here
 
-%include "../io.incl.asm"
+%include "io.incl.asm"
 	
 ; Print the boot message
 print_bootmsg:
