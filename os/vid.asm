@@ -16,22 +16,14 @@ VGA_MAX EQU VGA_WIDTH*VGA_HEIGHT
 VGA_END EQU VGA_ORIGIN + (VGA_MAX * 2)
 
 ASCII_SPACE EQU 0x20
-WHITE_ON_BLUE EQU 17H
-
-global vid_clear
-global vid_set_attribute
-global vid_reset_cursor
-global vid_advance_cursor
-global vid_print_string
-global vid_put_char
-global vid_advance_line
-global vid_print_string_line
+WHITE_ON_BLUE EQU 0x1F
 
 ; vid_clear
 ; Clears the screen using the current set attribute. Resets cursor position.
 ;
 ; Inputs: void
 ; Outputs: void
+global vid_clear
 vid_clear:
 	mov eax, VGA_ORIGIN
 	
@@ -53,6 +45,7 @@ vid_clear:
 ;
 ; Inputs: void
 ; Outputs: void
+global vid_reset_cursor
 vid_reset_cursor:
 	mov [cursor_X], dword 0
 	mov [cursor_Y], dword 0
@@ -65,8 +58,37 @@ vid_reset_cursor:
 ;
 ; Inputs: unsigned integer
 ; Outputs: void
+global vid_set_attribute
 vid_set_attribute:
 	mov al, param_ns(0) ; previous fn stack
+	mov byte [screen_attr], al
+	ret
+
+; vid_set_fg
+; Sets the current foreground color to draw with
+;
+; Input: char
+; Output: void
+global vid_set_fg
+vid_set_fg:
+	mov al, byte [screen_attr]
+	and al, 0xF0				; Clear foreground bits
+	or al, param_ns(0)			; Copy param value
+	mov byte [screen_attr], al
+	ret
+
+; vid_set_bg
+; Sets the current background color to draw with
+;
+; Input: char
+; Output: void
+global vid_set_bg
+vid_set_bg:
+	mov al, byte [screen_attr]
+	and al, 0x0F				; Clear background bits
+	mov dl, param_ns(0)
+	shl dl, 4					; Shift bits to left
+	or al, dl					; Copy value
 	mov byte [screen_attr], al
 	ret
 
@@ -75,6 +97,7 @@ vid_set_attribute:
 ;
 ; Input: void
 ; Output: void
+global vid_advance_cursor
 vid_advance_cursor:
 	mov eax, [cursor_X]
 	add eax, 1
@@ -88,6 +111,7 @@ vid_advance_cursor:
 ;
 ; Input: void
 ; Output: void
+global vid_advance_line
 vid_advance_line:
 	; in this case we need to increase cursor_Y
 	mov eax, [cursor_Y]
@@ -101,6 +125,7 @@ vid_advance_line:
 ;
 ; Input: char
 ; Output: void
+global vid_put_char
 vid_put_char:
 	mov ecx, [ebp+8]
 	; note: no jump, we fall through vid_put_char_internal
@@ -131,6 +156,7 @@ vid_put_char_internal:
 ;
 ; Input: char*
 ; Output: void
+global vid_print_string
 vid_print_string:
 	push esi
 	mov esi, param_ns(1)	; Grab incoming pointer
@@ -154,6 +180,7 @@ vid_print_string:
 ;
 ; Input: char*
 ; Output: void
+global vid_print_string_line
 vid_print_string_line:
 	mov eax, param_ns(0)
 	
