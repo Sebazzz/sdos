@@ -45,7 +45,7 @@ void kmain() {
 	}
 	
 	vid_set_fg(vga_color_white);
-	vid_print_string_line("Done!");
+	vid_print_string("Done!");
 	
 	sleep(500);
 }

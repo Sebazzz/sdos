@@ -124,15 +124,32 @@ vid_advance_line:
 	; copy the rest of the buffer to the first line.
 	VGA_ORIGIN_WITH_FIRST_LINE EQU VGA_ORIGIN + VGA_WIDTH_OFF			; Source addr to copy from
 	VGA_SZ_EXCEPT_FIRST_LINE EQU (VGA_MAX * 2) - VGA_WIDTH_OFF			; Number of bytes to copy
+	VGA_LAST_LINE EQU VGA_ORIGIN + VGA_SZ_EXCEPT_FIRST_LINE
 	
-	mov eax, ecx				; Internal caller requires preservation of ecx
+	push ecx					; Internal caller requires preservation of ecx
 	push VGA_ORIGIN						; Destination
 	push VGA_ORIGIN_WITH_FIRST_LINE		; Source
 	push VGA_SZ_EXCEPT_FIRST_LINE		; Size
 	call memcpy
 	clear_stack_ns(3)			; Restore stack after pushing
 	
-	mov ecx, eax				; Restore ECX for internal caller
+	; Clear lower line
+	mov eax, VGA_LAST_LINE		; Pick begin of last line and increase from there
+	
+	; ... Calc target address
+.clear_line_loop:
+	mov cl, ASCII_SPACE				; Write blank (=space)
+	mov byte [eax], ASCII_SPACE 	; set char
+	
+	mov cl, byte [screen_attr]		; color
+	mov byte [eax + 1], cl
+
+	add eax, 2							; Add eax until line is cleared
+	cmp eax, VGA_END
+	jl .clear_line_loop
+	
+	; Done clearing line
+	pop ecx						; Restore ECX for internal caller
 	
 	; Store new Y which is height - 1
 	mov eax, VGA_HEIGHT - 1
