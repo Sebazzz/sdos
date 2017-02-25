@@ -11,12 +11,13 @@ VGA_WIDTH EQU 80
 VGA_WIDTH_OFF EQU VGA_WIDTH*2 ; With attribute offset
 
 VGA_HEIGHT EQU 25
-VGA_HEIGHT_OFF EQU VGA_HEIGHT*2  ; With attribute offset
-VGA_MAX EQU VGA_WIDTH*VGA_HEIGHT
+VGA_MAX EQU (VGA_WIDTH*VGA_HEIGHT)
 VGA_END EQU VGA_ORIGIN + (VGA_MAX * 2)
 
 ASCII_SPACE EQU 0x20
 WHITE_ON_BLUE EQU 0x1F
+
+extern memcpy
 
 ; vid_clear
 ; Clears the screen using the current set attribute. Resets cursor position.
@@ -116,6 +117,28 @@ vid_advance_line:
 	; in this case we need to increase cursor_Y
 	mov eax, [cursor_Y]
 	add eax, 1
+	cmp eax, VGA_HEIGHT-1			; Ensure smaller or need to scroll
+	jle .store
+	
+	; Need to scroll. We do this by discarding the first line, and thus
+	; copy the rest of the buffer to the first line.
+	VGA_ORIGIN_WITH_FIRST_LINE EQU VGA_ORIGIN + VGA_WIDTH_OFF			; Source addr to copy from
+	VGA_SZ_EXCEPT_FIRST_LINE EQU (VGA_MAX * 2) - VGA_WIDTH_OFF			; Number of bytes to copy
+	
+	mov eax, ecx				; Internal caller requires preservation of ecx
+	push VGA_ORIGIN						; Destination
+	push VGA_ORIGIN_WITH_FIRST_LINE		; Source
+	push VGA_SZ_EXCEPT_FIRST_LINE		; Size
+	call memcpy
+	clear_stack_ns(3)			; Restore stack after pushing
+	
+	mov ecx, eax				; Restore ECX for internal caller
+	
+	; Store new Y which is height - 1
+	mov eax, VGA_HEIGHT - 1
+	mov [cursor_Y], dword eax
+	
+.store:
 	mov [cursor_Y], dword eax
 	mov [cursor_X], dword 0
 	ret
@@ -186,7 +209,7 @@ vid_print_string_line:
 	
 	push eax
 	call vid_print_string
-	pop eax
+	clear_stack_ns(1)
 	
 	jmp vid_advance_line
 	ret
@@ -195,5 +218,5 @@ end:
 
 section .data
 screen_attr db WHITE_ON_BLUE
-cursor_X dd 0
-cursor_Y dd 0
+cursor_X dd 0					; zero based X cursor (max: VGA_WIDTH - 1)
+cursor_Y dd 0					; zero based Y cursor (max: VGA_HEIGHT - 1)

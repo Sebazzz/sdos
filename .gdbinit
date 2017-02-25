@@ -37,7 +37,6 @@ define dbg-os
 	b kmain
 	b kexec_done
 	b kexec_done.done
-	b vid_print_string_line
 end
 
 define connect

@@ -133,8 +133,11 @@ exec_kernel:
 [bits 32]
 exec_kernel_32:
 	mov ax, gdt_kernel_data - gdt_null
-	mov ds, ax
-	mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
 	jmp (gdt_kernel_code - gdt_null):KERNEL_LOCATION
 	hlt
 

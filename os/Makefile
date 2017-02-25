@@ -34,10 +34,13 @@ $(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
 
 $(BUILD_DIR_IMM_ASM)/keyboard.o: keyboard.asm prepdir
 	nasm $(ASMCFLAGS) keyboard.asm -o $@
-	
+
+$(BUILD_DIR_IMM_ASM)/string.o: string.asm prepdir
+	nasm $(ASMCFLAGS) string.asm -o $@
+
 $(BUILD_DIR_IMM_ASM)/vid.o: vid.asm prepdir
 	nasm $(ASMCFLAGS) vid.asm -o $@
-	
+
 $(BUILD_OUTPUT): $(OS_C_OBJS) $(OS_ASM_OBJS)
 	ld $(LDFLAGS) $(OS_OBJS) -o $@
 

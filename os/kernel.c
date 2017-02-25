@@ -27,10 +27,25 @@ void kmain() {
 	vid_print_string("And wrapped!");
 	vid_advance_line();
 	
+	vga_color colors[] = {vga_color_red, vga_color_magenta, vga_color_light_cyan, vga_color_light_green};
+	const char* strings[] = {"Scrolling #1", "Scrolling #2", "Scrolling #3", "Scrolling #4"};
+	
+	const char* currentString;
+	vga_color currentColor;
+	
+	int colorLength = 4;
 	for (int i=0; i<80; i++) {
-		vid_print_string_line("Scrolling...");
-		sleep(50);
+		currentColor = colors[i % colorLength];
+		currentString = strings[i % colorLength];
+		
+		vid_set_fg(currentColor);
+		vid_print_string_line(currentString);
+		
+		sleep(10);
 	}
+	
+	vid_set_fg(vga_color_white);
+	vid_print_string_line("Done!");
 	
 	sleep(500);
 }
