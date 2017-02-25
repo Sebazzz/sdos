@@ -20,7 +20,7 @@ typedef enum {
 	vga_color_light_red = 4+8,
 	vga_color_light_magenta = 5+8,
 	vga_color_light_yellow = 6+8,
-	vga_color_light_white = 7+8
+	vga_color_white = 7+8
 } vga_color;
 
 /**

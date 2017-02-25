@@ -4,7 +4,7 @@ BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.o
 OS=$(BUILD_DIR)/os/os
 DISK_IMG=$(BUILD_DIR)/disk.img
 QEMU=qemu-system-i386
-QEMUFLAGS=-machine q35 -fda $(DISK_IMG) -gdb tcp::26000
+QEMUFLAGS=-machine q35 -fda $(DISK_IMG) -m 512M -gdb tcp::26000
 
 all: bootdisk
 
