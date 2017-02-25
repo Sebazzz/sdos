@@ -1,22 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <None Include="README.md" />
-    <None Include="bootloader\bootloader.asm" />
-    <None Include="bootloader\io.incl.asm" />
+    <None Include="Assets\LocalDebugger.xaml">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="os\__init.asm" />
+    <None Include="os\keyboard.asm" />
     <None Include="os\kinit.asm" />
+    <None Include="os\string.asm" />
     <None Include="os\vid.asm" />
+    <None Include="os\os.lds" />
+    <None Include="os\Makefile" />
+    <None Include="bootloader\bootloader.asm" />
+    <None Include="bootloader\bootloader.lds" />
+    <None Include="bootloader\io.incl.asm" />
+    <None Include="bootloader\Makefile" />
     <None Include=".gdbinit" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="LICENSE" />
     <None Include="macro.incl.asm" />
     <None Include="Makefile" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{08a26e93-524c-4982-a01c-c8d4f223d6be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="os\base.h" />
+    <ClInclude Include="os\keyboard.h" />
     <ClInclude Include="os\kinit.h" />
     <ClInclude Include="os\sdos.h" />
+    <ClInclude Include="os\string.h" />
     <ClInclude Include="os\vid.h" />
   </ItemGroup>
   <ItemGroup>

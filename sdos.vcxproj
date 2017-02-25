@@ -18,32 +18,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <None Include=".gdbinit" />
-    <None Include=".gitattributes" />
-    <None Include=".gitignore" />
-    <None Include="bootloader\bootloader.asm" />
-    <None Include="bootloader\io.incl.asm" />
-    <None Include="LICENSE" />
-    <None Include="macro.incl.asm" />
-    <None Include="Makefile" />
-    <None Include="os\kinit.asm" />
-    <None Include="os\vid.asm" />
-    <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="os\base.h" />
-    <ClInclude Include="os\kinit.h" />
-    <ClInclude Include="os\sdos.h" />
-    <ClInclude Include="os\vid.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="os\kernel.c" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C51A1A5C-173F-4477-A746-C638E73B92E9}</ProjectGuid>
-    <Keyword>MakeFileProj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ApplicationType>LinuxDebugger</ApplicationType>
+    <SecureShellExecutable>ssh</SecureShellExecutable>
+    <RemoteDebuggerExecutable>gdb</RemoteDebuggerExecutable>
+    <LocalDebuggerExecutable>gdb</LocalDebuggerExecutable>
+    <OCDDebuggerServerAddress>localhost:3333</OCDDebuggerServerAddress>
+    <Keyword>IoT</Keyword>
+    <ProjectGuid>{13C7C18A-B5DA-4CEE-979D-CA72DB10350C}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -57,12 +39,12 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Utility</ConfigurationType>
+    <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
@@ -84,27 +66,87 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemGroup>
+    <None Include=".gdbinit" />
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="Assets\LocalDebugger.xaml" />
+    <None Include="bootloader\bootloader.asm" />
+    <None Include="bootloader\bootloader.lds" />
+    <None Include="bootloader\io.incl.asm" />
+    <None Include="bootloader\Makefile" />
+    <None Include="LICENSE" />
+    <None Include="macro.incl.asm" />
+    <None Include="Makefile" />
+    <None Include="os\keyboard.asm" />
+    <None Include="os\kinit.asm" />
+    <None Include="os\Makefile" />
+    <None Include="os\os.lds" />
+    <None Include="os\string.asm" />
+    <None Include="os\vid.asm" />
+    <None Include="os\__init.asm" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <!--Import Project="$(MSBuildThisFileDirectory)\Microsoft.cpp.Linux.targets" /-->
+  <!-- To Enable linux debugger -->
+  <PropertyGroup>
+    <UseDefaultDebuggersPropertyPageSchemas>false</UseDefaultDebuggersPropertyPageSchemas>
+    <UseDefaultPropertyPageSchemas>false</UseDefaultPropertyPageSchemas>
+    <_ApplicableDebuggers>Desktop</_ApplicableDebuggers>
+    <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
+    <NMakeBuildCommandLine>"C:\Windows\System32\bash.exe" -c "cd /mnt/z/Dev/ASM/sdos;make clean &amp;&amp; make"</NMakeBuildCommandLine>
     <NMakeBuildCommandLine>bash -c "make"</NMakeBuildCommandLine>
-    <NMakeOutput>build/disk.img</NMakeOutput>
-    <NMakeCleanCommandLine>bash -c "make clean"</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <ItemGroup>
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\ProjectItemsSchema.xml" />
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\directories.xml" />
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\debugger_general.xml" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)\Assets\LocalDebugger.xaml" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)\Assets\linux_nmake.xaml" />
+    <!-- project only rules -->
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\general_makefile.xml">
+      <Context>Project</Context>
+    </PropertyPageSchema>
+    <!-- Property sheet only rules -->
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\general_makefile_ps.xml;$(VCTargetsPath)$(LangID)\usermacros.xml">
+      <Context>PropertySheet</Context>
+    </PropertyPageSchema>
+    <!-- File only rules -->
+    <PropertyPageSchema Include="$(VCTargetsPath)$(LangID)\general_file.xml">
+      <Context>File</Context>
+    </PropertyPageSchema>
+  </ItemGroup>
+  <ItemGroup>
+    <DesktopDebuggerPages Include="$(MSBuildThisFileDirectory)\Assets\LinuxDebugger.xaml" />
+    <DesktopDebuggerPages Include="$(MSBuildThisFileDirectory)\Assets\LocalDebugger.xaml" />
+    <DesktopDebuggerPages Include="$(MSBuildThisFileDirectory)\Assets\OCDDebugger.xaml" />
+    <DesktopDebuggerPages Include="$(MSBuildThisFileDirectory)\Assets\linux_nmake.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectCapability Include="Linux" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="os\base.h" />
+    <ClInclude Include="os\keyboard.h" />
+    <ClInclude Include="os\kinit.h" />
+    <ClInclude Include="os\sdos.h" />
+    <ClInclude Include="os\string.h" />
+    <ClInclude Include="os\vid.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="os\kernel.c" />
+  </ItemGroup>
+  <!-- To Enable linux debugger End -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)build\os\</OutDir>
+    <IntDir>build\os\imm</IntDir>
     <NMakeReBuildCommandLine>bash -c "make clean &amp;&amp; make"</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeCleanCommandLine>bash -c "make clean"</NMakeCleanCommandLine>
+    <NMakeOutput>build/os/os</NMakeOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeBuildCommandLine>bash -c "make"</NMakeBuildCommandLine>
-    <NMakeOutput>build/disk.img</NMakeOutput>
-    <NMakeCleanCommandLine>bash -c "make clean"</NMakeCleanCommandLine>
-    <NMakeReBuildCommandLine>bash -c "make clean &amp;&amp; make"</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)build\os</OutDir>
-    <TargetExt>.img</TargetExt>
-  </PropertyGroup>
-  <ItemDefinitionGroup>
-  </ItemDefinitionGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
