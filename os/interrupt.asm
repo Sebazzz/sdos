@@ -109,23 +109,23 @@ section .data
 
 idt:
 	IDT_HANDLER_LOW_OFFSET equ $-idt
-ex_low: dw 0xFFFF			; base (lower bits)
+dw 0xFFFF			; base (lower bits)
 	IDT_SEG_OFFSET equ $-idt
-ex_seg: dw 0x0008			; segment
+dw 0x0008			; segment
 db 0x00				; unused
 	IDT_HANDLER_TYPE_OFFSET equ $-idt
 db 0b1000_1111		; type
 	IDT_HANDLER_HIGH_OFFSET equ $-idt
-ex_high: dw 0xFFFF			; base (higher bits)
+dw 0xFFFF			; base (higher bits)
 	IDT_HANDLER_SIZE equ $-idt
 
-;%rep 255
-;dw 0x0000 ; handler low
-;dw 0x0008 ; segment
-;db 0x00 ; unused
-;db 0b0000_1111 ; type
-;dw 0x0000	   ; handler (high)
-;%endrep
+%rep 13
+dw 0xDEAD		; handler low
+dw 0xBEEF		; segment
+db 0x00			; unused
+db 0x0F 		; type
+dw 0xCAFE		; handler (high)
+%endrep
 
 idt_end: 					; Used to calculate the size of the GDT
 idt_desc: 					; The GDT descriptor 
