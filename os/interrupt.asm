@@ -11,19 +11,30 @@ extern vid_clear
 extern vid_set_attribute
 extern vid_print_string
 
+; macro: set_trap_handler
+; Installs a trap interrupt handler
+;
+; Parameters: 1=vector, 2=handler
+%macro set_trap_handler 2
+	push %1
+	push 0xF
+	push %2
+	call install_interrupt_handler
+	clear_stack_ns(3)
+%endmacro
+
 ; init_interrupt
 ; Set up the interrupt table and enables interrupts
-
 global init_interrupt
 init_interrupt:
 	mov eax, idt
 	
-	; set-up exception handler
-	push 0x0
-	push 0xF
-	push exception_handler
-	call install_interrupt_handler
-	clear_stack_ns(3)
+	; set-up exception handler for:
+	set_trap_handler 0x0, exception_handler	; divide by zero
+	set_trap_handler 0xB, exception_handler	; segment not present
+	set_trap_handler 0xC, exception_handler	; stack segment fault
+	set_trap_handler 0xD, exception_handler	; general protection fault
+	set_trap_handler 0x1E, exception_handler	; security exception (??)
 	
 	; load table
 	lidt [idt_desc]
