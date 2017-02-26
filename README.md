@@ -2,7 +2,7 @@
 
 Experimental operating system based on fiddling with assembly and C.
 
-16-bit BIOS dependent OS.
+32-bit protected mode OS. Bootloader set-ups up protected mode with the GDT, `kinit` set-up interrupts and exception handling.
 
 ## Prequisites
 
