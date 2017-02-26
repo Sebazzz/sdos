@@ -32,6 +32,7 @@ init_interrupt:
 	
 	; set-up exception handler for:
 	set_trap_handler 0x0, divide_by_zero_handler		; divide by zero
+	set_trap_handler 0x8, double_fault_handler			; double fault
 	set_trap_handler 0xB, segment_np_handler			; segment not present
 	;set_trap_handler 0xC, segment_overflow_handler		; stack segment fault
 	;set_trap_handler 0xD, gp_fault_handler				; general protection fault
@@ -93,14 +94,14 @@ uninstall_interrupt_handler:
 	
 	ret
 
-; internal macro: create_exception_handler
-; Creates an exception handler which prints the specified message
+; internal macro: create_halt_trap_handler
+; Creates an exception handler which prints the specified message and halts the system
 ;
 ; Parameters: 1=name, 2=message
-%macro create_trap_handler 2
+%macro create_halt_trap_handler 2
 	global %1
 	%1:
-		cli
+		cli	; Stop disturbing
 		pushad
 		
 		; Create clean RSOD
@@ -130,11 +131,48 @@ uninstall_interrupt_handler:
 		iret
 %endmacro
 
-create_trap_handler divide_by_zero_handler, exDivideMsg
-create_trap_handler segment_np_handler, exSegmentMsg
-;create_trap_handler segment_overflow_handler, exStSegOverflowMsg
-;create_trap_handler gp_fault_handler, exGpFaultMsg
-;create_trap_handler security_exception_handler, exSecurityExMsg
+; internal macro: create_cont_trap_handler
+; Creates an exception handler which prints the specified message and continues the system
+;
+; Parameters: 1=name, 2=message
+%macro create_cont_trap_handler 2
+	global %1
+	%1:
+		cli	; Stop disturbing for duration of interrupt
+		pushad
+		
+		; Create clean RSOD
+		push 0x4E	; Red bg, yellow fg
+		call vid_set_attribute
+		clear_stack_ns(1)
+		
+		call vid_clear
+		
+		; Write generic error message
+		push exMsg
+		call vid_print_string_line
+		clear_stack_ns(1)
+		
+		call vid_advance_line
+		
+		; Write specific error message
+		push %2
+		call vid_print_string_line
+		clear_stack_ns(1)
+		
+		; Resume
+		popad
+		sti
+		clear_stack_ns(1)
+		iret
+%endmacro
+
+create_halt_trap_handler divide_by_zero_handler, exDivideMsg
+create_cont_trap_handler segment_np_handler, exSegmentMsg
+create_halt_trap_handler double_fault_handler, exDfMsg
+;create_halt_trap_handler segment_overflow_handler, exStSegOverflowMsg
+;create_halt_trap_handler gp_fault_handler, exGpFaultMsg
+;create_halt_trap_handler security_exception_handler, exSecurityExMsg
 
 section .data
 
@@ -166,6 +204,7 @@ idt_desc: 					; The GDT descriptor
 section .rodata
 exMsg db "@@ System execution error - CPU exception", 0
 exDivideMsg db "Divide by zero", 0
+exDfMsg db "Double fault", 0
 exSegmentMsg db "Segment not present", 0
 ;exStSegOverflowMsg db "Stack Segment Overflow", 0
 ;exGpFaultMsg db "General Protection Fault", 0

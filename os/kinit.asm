@@ -97,13 +97,12 @@ kexec_done:
 ; Output: nothing
 sleep:
 sleep_ticks:
+	nop
 	mov eax, 100000
 	mul dword param_ns(0)
-	pause
 .loop:
 	dec eax
 	cmp eax, 0x0
-	pause
 	jne .loop
 	ret
 

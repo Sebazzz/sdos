@@ -35,17 +35,21 @@ define dbg-os
 	set architecture i386:intel
 	symbol-file build/os/os
 	layout split
-	b kinit
-	b kmain
+	#b kinit
+	#b kmain
 	b kexec_done
 	b kexec_done.done
 	
 	# Set-up breakpoints in the respective handlers
-	b divide_by_zero_handler
-	b segment_np_handler
-	b segment_overflow_handler
-	b gp_fault_handler
-	b security_exception_handler
+	b init_interrupt
+	#b divide_by_zero_handler
+	#b segment_np_handler
+	b *0x6b7
+	b *0x6e9
+	#b sleep
+	#b segment_overflow_handler
+	#b gp_fault_handler
+	#b security_exception_handler
 end
 
 define connect
