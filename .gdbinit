@@ -26,17 +26,20 @@ define dbg-bootloader
 	
 	# Just before executing kernel, enable protected mode
 	b *0x7d08
+	
+	# 32-bit protected mode kernel jump
+	b exec_kernel_32
 end
 
 define dbg-os
 	set architecture i386:intel
-	symbol-file build/os/imm/asm/vid.o
 	symbol-file build/os/os
 	layout split
-	#b kinit
+	b kinit
 	b kmain
 	b kexec_done
 	b kexec_done.done
+	b exception_handler
 end
 
 define connect

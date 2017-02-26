@@ -31,13 +31,13 @@ print_halt_message:
 	; Clear screen
 	push dword YELLOW_ON_BLACK
 	call vid_set_attribute
-	pop eax ; we don't care
+	clear_stack_ns(1)
 	
 	call vid_clear
 	
 	push endMsg
 	call vid_print_string
-	pop eax ; we don't care
+	clear_stack_ns(1)
 	
 	ret
 
@@ -60,6 +60,19 @@ kinit:
 	; in assembly as languages such as C cannot function without a stack.
 	mov esp, stack_top
 	mov ebp, esp
+	
+	nop
+	nop
+	nop
+	
+	extern init_interrupt
+	call init_interrupt
+	
+	nop
+	
+	;; Trigger exception for test
+	;mov eax, 0
+	;div eax
 	
 	nop
 	nop

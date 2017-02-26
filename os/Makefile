@@ -35,6 +35,9 @@ $(BUILD_DIR_IMM_ASM)/kinit.o: kinit.asm prepdir
 $(BUILD_DIR_IMM_ASM)/keyboard.o: keyboard.asm prepdir
 	nasm $(ASMCFLAGS) keyboard.asm -o $@
 
+$(BUILD_DIR_IMM_ASM)/interrupt.o: interrupt.asm prepdir
+	nasm $(ASMCFLAGS) interrupt.asm -o $@
+
 $(BUILD_DIR_IMM_ASM)/string.o: string.asm prepdir
 	nasm $(ASMCFLAGS) string.asm -o $@
 
