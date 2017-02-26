@@ -20,3 +20,7 @@
 ; clear_stack_ns(n) where n is the number of pushed objects
 ; Clears earlier pushed items on the stakc
 %define clear_stack_ns(n) add esp, (n * 4)
+
+; io_wait()
+; Forces the CPU to wait for an I/O operation to complete
+%define io_wait out 0x80, al

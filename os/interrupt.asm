@@ -7,6 +7,16 @@
 
 IDT_BASE_HIGH_OFFSET EQU 6
 
+PIC1 EQU 0x20
+PIC2 EQU 0xA0
+
+PIC1_COMMAND EQU PIC1
+PIC1_DATA EQU PIC1+1
+PIC2_COMMAND EQU PIC2
+PIC2_DATA EQU PIC2+1
+
+ICW1_DISABLE EQU 0xFF ; Interrupt command word: initialization
+
 extern vid_clear
 extern vid_set_attribute
 extern vid_print_string_line
@@ -28,7 +38,7 @@ extern vid_advance_line
 ; Set up the interrupt table and enables interrupts
 global init_interrupt
 init_interrupt:
-	mov eax, idt
+	call setup_pic
 	
 	; set-up exception handler for:
 	set_trap_handler 0x0, divide_by_zero_handler		; divide by zero
@@ -42,6 +52,17 @@ init_interrupt:
 	lidt [idt_desc]
 	
 	sti					; Enable interrupts
+	ret
+
+; setup_pic
+; Internal routine to set-up the pic so it won't trigger IRQ
+; on reserved interrupt IDs (0-7), but above (higher than 0x1F)
+setup_pic:
+	; Start init sequence
+	mov al, ICW1_DISABLE
+	out PIC2_DATA, al
+	out PIC1_DATA, al
+	
 	ret
 
 ; install_interrupt_handler
