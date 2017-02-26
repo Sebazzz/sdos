@@ -39,7 +39,13 @@ define dbg-os
 	b kmain
 	b kexec_done
 	b kexec_done.done
-	b exception_handler
+	
+	# Set-up breakpoints in the respective handlers
+	b divide_by_zero_handler
+	b segment_np_handler
+	b segment_overflow_handler
+	b gp_fault_handler
+	b security_exception_handler
 end
 
 define connect

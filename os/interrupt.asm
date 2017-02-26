@@ -9,7 +9,8 @@ IDT_BASE_HIGH_OFFSET EQU 6
 
 extern vid_clear
 extern vid_set_attribute
-extern vid_print_string
+extern vid_print_string_line
+extern vid_advance_line
 
 ; macro: set_trap_handler
 ; Installs a trap interrupt handler
@@ -30,11 +31,11 @@ init_interrupt:
 	mov eax, idt
 	
 	; set-up exception handler for:
-	set_trap_handler 0x0, exception_handler	; divide by zero
-	set_trap_handler 0xB, exception_handler	; segment not present
-	set_trap_handler 0xC, exception_handler	; stack segment fault
-	set_trap_handler 0xD, exception_handler	; general protection fault
-	set_trap_handler 0x1E, exception_handler	; security exception (??)
+	set_trap_handler 0x0, divide_by_zero_handler		; divide by zero
+	;set_trap_handler 0xB, segment_np_handler			; segment not present
+	;set_trap_handler 0xC, segment_overflow_handler		; stack segment fault
+	;set_trap_handler 0xD, gp_fault_handler				; general protection fault
+	;set_trap_handler 0x1E, security_exception_handler	; security exception (??)
 	
 	; load table
 	lidt [idt_desc]
@@ -92,29 +93,48 @@ uninstall_interrupt_handler:
 	
 	ret
 
-global exception_handler
-exception_handler:
-	cli
-	pushad
-	
-	; Create clean RSOD
-	push 0x4E	; Red bg, yellow fg
-	call vid_set_attribute
-	clear_stack_ns(1)
-	
-	call vid_clear
-	
-	; Write error message
-	push exMsg
-	call vid_print_string
-	clear_stack_ns(1)
-	
-	; Put system in permanent halt state
-	popad
-.resume:
-	hlt
-	jmp .resume
-	iret
+; internal macro: create_exception_handler
+; Creates an exception handler which prints the specified message
+;
+; Parameters: 1=name, 2=message
+%macro create_trap_handler 2
+	global %1
+	%1:
+		cli
+		pushad
+		
+		; Create clean RSOD
+		push 0x4E	; Red bg, yellow fg
+		call vid_set_attribute
+		clear_stack_ns(1)
+		
+		call vid_clear
+		
+		; Write generic error message
+		push exMsg
+		call vid_print_string_line
+		clear_stack_ns(1)
+		
+		call vid_advance_line
+		
+		; Write specific error message
+		push %2
+		call vid_print_string_line
+		clear_stack_ns(1)
+		
+		; Put system in permanent halt state
+		popad
+	.resume:
+		hlt
+		jmp .resume
+		iret
+%endmacro
+
+create_trap_handler divide_by_zero_handler, exDivideMsg
+;create_trap_handler segment_np_handler, exSegmentMsg
+;create_trap_handler segment_overflow_handler, exStSegOverflowMsg
+;create_trap_handler gp_fault_handler, exGpFaultMsg
+;create_trap_handler security_exception_handler, exSecurityExMsg
 
 section .data
 
@@ -145,3 +165,8 @@ idt_desc: 					; The GDT descriptor
 
 section .rodata
 exMsg db "@@ System execution error - CPU exception", 0
+exDivideMsg db "Divide by zero", 0
+;exSegmentMsg db "Segment not present", 0
+;exStSegOverflowMsg db "Stack Segment Overflow", 0
+;exGpFaultMsg db "General Protection Fault", 0
+;exSecurityExMsg db "Security Exception", 0

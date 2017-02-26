@@ -44,7 +44,7 @@ print_halt_message:
 kinit:
 	nop
 	
-	;call vid_clear
+	call vid_clear
 	
 	nop
 	
@@ -68,14 +68,9 @@ kinit:
 	extern init_interrupt
 	call init_interrupt
 	
-	nop
-	
-	;; Trigger exception for test
-	mov eax, 0
+	mov eax,0
 	div eax
 	
-	nop
-	nop
 	nop
 	
 	extern kmain
