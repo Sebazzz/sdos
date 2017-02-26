@@ -32,7 +32,7 @@ init_interrupt:
 	
 	; set-up exception handler for:
 	set_trap_handler 0x0, divide_by_zero_handler		; divide by zero
-	;set_trap_handler 0xB, segment_np_handler			; segment not present
+	set_trap_handler 0xB, segment_np_handler			; segment not present
 	;set_trap_handler 0xC, segment_overflow_handler		; stack segment fault
 	;set_trap_handler 0xD, gp_fault_handler				; general protection fault
 	;set_trap_handler 0x1E, security_exception_handler	; security exception (??)
@@ -131,7 +131,7 @@ uninstall_interrupt_handler:
 %endmacro
 
 create_trap_handler divide_by_zero_handler, exDivideMsg
-;create_trap_handler segment_np_handler, exSegmentMsg
+create_trap_handler segment_np_handler, exSegmentMsg
 ;create_trap_handler segment_overflow_handler, exStSegOverflowMsg
 ;create_trap_handler gp_fault_handler, exGpFaultMsg
 ;create_trap_handler security_exception_handler, exSecurityExMsg
@@ -166,7 +166,7 @@ idt_desc: 					; The GDT descriptor
 section .rodata
 exMsg db "@@ System execution error - CPU exception", 0
 exDivideMsg db "Divide by zero", 0
-;exSegmentMsg db "Segment not present", 0
+exSegmentMsg db "Segment not present", 0
 ;exStSegOverflowMsg db "Stack Segment Overflow", 0
 ;exGpFaultMsg db "General Protection Fault", 0
 ;exSecurityExMsg db "Security Exception", 0

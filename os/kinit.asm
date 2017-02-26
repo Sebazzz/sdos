@@ -68,9 +68,6 @@ kinit:
 	extern init_interrupt
 	call init_interrupt
 	
-	mov eax,0
-	div eax
-	
 	nop
 	
 	extern kmain
