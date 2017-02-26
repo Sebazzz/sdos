@@ -44,7 +44,7 @@ print_halt_message:
 kinit:
 	nop
 	
-	call vid_clear
+	;call vid_clear
 	
 	nop
 	
@@ -71,8 +71,8 @@ kinit:
 	nop
 	
 	;; Trigger exception for test
-	;mov eax, 0
-	;div eax
+	mov eax, 0
+	div eax
 	
 	nop
 	nop
