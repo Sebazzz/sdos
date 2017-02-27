@@ -201,16 +201,24 @@ vid_print_string:
 	push esi
 	mov esi, param_ns(1)	; Grab incoming pointer
 	
-	.loop:
+.loop:
 	movzx ecx, byte [esi]			; Store character for v_p_c_i, clear upper bytes
 	cmp ecx, 0x0			; Check for \0 character
 	je .done
+	
+	cmp ecx, 0xA
+	je .newline
 	
 	call vid_put_char_internal ; param = ecx
 	inc esi 				; Next char
 	jmp .loop
 	
-	.done:
+.newline:
+	call vid_advance_line
+	inc esi 				; Next char
+	jmp .loop
+	
+.done:
 	pop esi
 	ret
 
