@@ -24,20 +24,22 @@ extern memcpy
 ;
 ; Inputs: void
 ; Outputs: void
+;
+; Registers modified: eax, ecx
 global vid_clear
 vid_clear:
 	mov eax, VGA_ORIGIN
 	
-.vid_loop:
+.loop:
 	mov byte [eax], ASCII_SPACE
 	mov cl, [screen_attr]
 	mov [eax + 1], cl
 	
 	add eax, 2
 	cmp eax, VGA_END
-	jl .vid_loop ; if we didn't reach end of VGA buffer
+	jl .loop ; if we didn't reach end of VGA buffer
 	
-.vid_loop_done:
+.done:
 	jmp vid_reset_cursor
 	ret
 
@@ -46,6 +48,8 @@ vid_clear:
 ;
 ; Inputs: void
 ; Outputs: void
+;
+; Registers modified: none
 global vid_reset_cursor
 vid_reset_cursor:
 	mov [cursor_X], dword 0
@@ -59,6 +63,8 @@ vid_reset_cursor:
 ;
 ; Inputs: unsigned integer
 ; Outputs: void
+;
+; Registers modified: eax
 global vid_set_attribute
 vid_set_attribute:
 	mov al, param_ns(0) ; previous fn stack
@@ -70,6 +76,8 @@ vid_set_attribute:
 ;
 ; Input: char
 ; Output: void
+;
+; Registers modified: eax
 global vid_set_fg
 vid_set_fg:
 	mov al, byte [screen_attr]
@@ -83,6 +91,8 @@ vid_set_fg:
 ;
 ; Input: char
 ; Output: void
+;
+; Registers modified: eax, edx
 global vid_set_bg
 vid_set_bg:
 	mov al, byte [screen_attr]
@@ -98,6 +108,8 @@ vid_set_bg:
 ;
 ; Input: void
 ; Output: void
+;
+; Registers modified: eax
 global vid_advance_cursor
 vid_advance_cursor:
 	mov eax, [cursor_X]
@@ -112,6 +124,8 @@ vid_advance_cursor:
 ;
 ; Input: void
 ; Output: void
+;
+; Registers modified: eax
 global vid_advance_line
 vid_advance_line:
 	; in this case we need to increase cursor_Y
@@ -165,6 +179,8 @@ vid_advance_line:
 ;
 ; Input: char
 ; Output: void
+;
+; Registers modified: eax, ecx
 global vid_put_char
 vid_put_char:
 	mov ecx, [ebp+8]
@@ -175,6 +191,8 @@ vid_put_char:
 ;
 ; Input: char in [ecx]
 ; Output: screen_attribute in ecx
+;
+; Registers modified: eax
 vid_put_char_internal:
 	; Calc target address
 	mov eax, VGA_WIDTH_OFF
@@ -196,6 +214,8 @@ vid_put_char_internal:
 ;
 ; Input: char*
 ; Output: void
+;
+; Registers modified: ecx
 global vid_print_string
 vid_print_string:
 	push esi
@@ -228,6 +248,8 @@ vid_print_string:
 ;
 ; Input: char*
 ; Output: void
+;
+; ; Registers modified: eax, ecx
 global vid_print_string_line
 vid_print_string_line:
 	mov eax, param_ns(0)
