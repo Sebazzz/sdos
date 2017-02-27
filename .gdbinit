@@ -42,14 +42,13 @@ define dbg-os
 	
 	# Set-up breakpoints in the respective handlers
 	b init_interrupt
-	#b divide_by_zero_handler
-	#b segment_np_handler
-	b *0x6b7
-	b *0x6e9
 	#b sleep
-	#b segment_overflow_handler
-	#b gp_fault_handler
-	#b security_exception_handler
+	b divide_by_zero_handler
+	b segment_np_handler
+	b double_fault_handler
+	b segment_overflow_handler
+	b gp_fault_handler
+	b security_exception_handler
 end
 
 define connect

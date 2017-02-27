@@ -83,7 +83,7 @@ read_kernel:
 	mov es, ax
 	xor bx, bx
 	
-	mov al, 4		; read two sectors
+	mov al, 10		; read some sectors
 	mov ch, 0		; track 0
 	mov cl, 2		; sector to read
 	mov dh, 0		; head number
