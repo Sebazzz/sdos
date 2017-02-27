@@ -19,6 +19,7 @@ ICW1_DISABLE EQU 0xFF ; Interrupt command word: initialization
 
 extern vid_clear
 extern vid_set_attribute
+extern vid_print_string
 extern vid_print_string_line
 extern vid_advance_line
 
@@ -131,6 +132,12 @@ uninstall_interrupt_handler:
 	call vid_clear
 	
 	; Write generic error message
+	push exMsgHeader
+	call vid_print_string_line
+	clear_stack_ns(1)
+	
+	call vid_advance_line
+	
 	push exMsg
 	call vid_print_string_line
 	clear_stack_ns(1)
@@ -139,7 +146,7 @@ uninstall_interrupt_handler:
 	
 	; Write specific error message
 	push %1
-	call vid_print_string_line
+	call vid_print_string
 	clear_stack_ns(1)
 	
 	; Put system in permanent halt state
@@ -174,7 +181,7 @@ uninstall_interrupt_handler:
 	
 	; Write specific error message
 	push %1
-	call vid_print_string_line
+	call vid_print_string
 	clear_stack_ns(1)
 	
 	; Resume
@@ -252,3 +259,4 @@ exSegmentMsg db "Segment not present", 0
 exStSegOverflowMsg db "Stack Segment Overflow", 0
 exGpFaultMsg db "General Protection Fault", 0
 exSecurityExMsg db "Security Exception", 0
+exMsgHeader db "                 .               ", 0xA, "                 .               ", 0xA, "                 .       :       ", 0xA, "                 :      .        ", 0xA, "        :..   :  : :  .          ", 0xA, "           ..  ; :: .            ", 0xA, "              ... .. :..         ", 0xA, "             ::: :...            ", 0xA, "         ::.:.:...;; .....       ", 0xA, "      :..     .;.. :;     ..     ", 0xA, "            . :. .  ;.           ", 0xA, "             .: ;;: ;.           ", 0xA, "            :; .BRRRV;           ", 0xA, "               YB BMMMBR         ", 0xA, "              ;BVIMMMMMt         ", 0xA, "        .=YRBBBMMMMMMMB          ", 0xA, "      =RMMMMMMMMMMMMMM;          ", 0xA, "    ;BMMR=VMMMMMMMMMMMV.         ", 0xA, "   tMMR::VMMMMMMMMMMMMMB:        ", 0xA, "  tMMt ;BMMMMMMMMMMMMMMMB.       ", 0xA, " ;MMY ;MMMMMMMMMMMMMMMMMMV       ", 0xA, " XMB .BMMMMMMMMMMMMMMMMMMM:      ", 0xA, " BMI +MMMMMMMMMMMMMMMMMMMMi      ", 0xA, ".MM= XMMMMMMMMMMMMMMMMMMMMY      ", 0xA, " BMt YMMMMMMMMMMMMMMMMMMMMi      ", 0xA, " VMB +MMMMMMMMMMMMMMMMMMMM:      ", 0xA, " ;MM+ BMMMMMMMMMMMMMMMMMMR       ", 0xA, "  tMBVBMMMMMMMMMMMMMMMMMB.       ", 0xA, "   tMMMMMMMMMMMMMMMMMMMB:        ", 0xA, "    ;BMMMMMMMMMMMMMMMMY          ", 0xA, "      +BMMMMMMMMMMMBY:           ", 0xA, "        :+YRBBBRVt;", 0
