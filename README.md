@@ -6,12 +6,14 @@ Experimental operating system based on fiddling with assembly and C.
 
 ## Prequisites
 
-OS: Debian or Ubuntu on Windows.
+OS: Debian or "Windows subsystem for Linux" (WSL) with Ubuntu.
 GCC 4.9
 
 ```
-apt-get install make nasm qemu
+apt-get install build-essential make nasm qemu gcc-multilib g++-multilib
 ```
+
+If using *WSL*, don't forget to [install an X display server like XMing](https://damsteen.nl/blog/2016/08/20/run-gui-programs-on-bash-on-ubuntu-on-windows), and set the `DISPLAY` variable.
 
 ## Building
 
