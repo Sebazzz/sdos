@@ -2,8 +2,8 @@ ENTRY(kinit);
 OUTPUT_FORMAT(elf32-i386);
 
 PHDRS { 
-	headers PT_PHDR FILEHDR PHDRS; 
-	code PT_LOAD;
+	headers PT_PHDR PHDRS; 
+	code PT_LOAD FILEHDR PHDRS;
 }
 
 SECTIONS {
