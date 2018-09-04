@@ -40,3 +40,17 @@ Clean output artifacts:
 ```
 make clean
 ```
+
+## Debugging
+
+Ensure GDB is installed
+
+```
+apt-get install gdb
+```
+
+Configure for auto-loading gdb options file:
+
+```
+echo "add-auto-load-safe-path `pwd`/.gdbinit" >> ~/.gdbinit
+```
