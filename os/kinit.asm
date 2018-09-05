@@ -87,6 +87,11 @@ kinit:
 	jmp kexec_done
 	hlt
 
+EFLAGS_ID_BIT EQU 0x00200000
+CPUID_GETVENDORSTRING EQU 0x0
+CPUID_GET_FEATURESEX EQU 0x80000001
+CPUID_FEAT_LONGMODE EQU 0b00100000000000000000000000000000
+
 kexec_verify_architecture:
 	; Write verify message
 	push verifyMsg
@@ -97,25 +102,42 @@ kexec_verify_architecture:
 	; Verify CPUID support
 	pushfd
 	pushfd
-	xor dword [esp], 0x00200000 ; Attempt to write ID bit
+	xor dword [esp], EFLAGS_ID_BIT ; Attempt to write ID bit
 	popfd
 	pushfd
 	pop eax ; Possibly modified EFLAGS
 	xor eax,[esp] ; Bits that were changed
 	popfd ;Restore original flags
-	test eax, 0x200000
-	jnz .check_long_mode_support ; if zero, no cpuid support
+	test eax, EFLAGS_ID_BIT
+	jnz .print_vendor_string ; if zero, no cpuid support
 	
 	; Fall-through
 	mov eax, verifyUnknownMsg
 	jmp kexec_verify_architecture_failed
 	
+.print_vendor_string:
+	; Get the CPU vendor string
+	mov eax, CPUID_GETVENDORSTRING
+	cpuid
+	push dword 0x0 ; zero-terminate
+	push ecx
+	push edx
+	push ebx
+	lea eax, [esp] ; Note that in reverse order the string is read, so we start at esp
+	push eax; argument for vid_print_string_line
+	
+	call vid_print_string_line
+	
+	clear_stack_ns(5) ; 4 pushes, 1 pointer push(eax)
+	
+	jmp .check_long_mode_support
+	
 .check_long_mode_support:
 	; Check CPUID - bit 29 contains the "long-jump supported" flag
 	; Ref: https://support.amd.com/TechDocs/24594.pdf page 71, chapter 3, table 3-1
-	mov eax, 0x80000001
+	mov eax, CPUID_GET_FEATURESEX
 	cpuid
-	test edx, 0b00100000000000000000000000000000
+	test edx, CPUID_FEAT_LONGMODE
 	jnz .done ; if zero, no long jump support
 	
 	; Oops, fall through. CPU does not support x64
@@ -142,7 +164,7 @@ kexec_verify_architecture_failed:
 	call vid_clear
 	
 	; .. Write message
-	call vid_print_string
+	call vid_print_string ; on the stack by eax
 	clear_stack_ns(1)
 	
 	jmp kexec_done_halt
