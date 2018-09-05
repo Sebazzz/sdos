@@ -24,6 +24,7 @@ global sleep
 
 extern vid_clear
 extern vid_print_string
+extern vid_print_string_line
 extern vid_set_attribute
 
 ; Print end message
