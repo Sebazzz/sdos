@@ -19,9 +19,6 @@ section .text
 global kinit
 global kexec_done
 
-global sleep_ticks
-global sleep
-
 extern vid_clear
 extern vid_print_string
 extern vid_print_string_line
@@ -68,12 +65,22 @@ kinit:
 	
 	nop
 	
+	extern kinit_init_timer
+	call kinit_init_timer
+	
+	nop
+	
 	nop
 	nop
 	nop
 	
 	extern init_interrupt
 	call init_interrupt
+	
+	nop
+	
+	extern kinit_enable_timer
+	call kinit_enable_timer
 	
 	nop
 	
@@ -130,7 +137,8 @@ kexec_verify_architecture:
 	
 	clear_stack_ns(5) ; 4 pushes, 1 pointer push(eax)
 	
-	jmp .check_long_mode_support
+	;jmp .check_long_mode_support
+	jmp .done
 	
 .check_long_mode_support:
 	; Check CPUID - bit 29 contains the "long-jump supported" flag
@@ -145,8 +153,8 @@ kexec_verify_architecture:
 	jmp kexec_verify_architecture_failed
 
 .done:
-	push endMsg
-	call verifySuccessMsg
+	push verifySuccessMsg
+	call vid_print_string
 	clear_stack_ns(1)
 	
 	ret
@@ -178,23 +186,6 @@ kexec_done_halt:
 .done:
 	hlt
 	jmp .done
-
-; sleep
-; sleep_ticks
-; Sleeps for a number of ticks (DOES NOT WORK YET ACCURATELY)
-;
-; Input: unsigned int ticks
-; Output: nothing
-sleep:
-sleep_ticks:
-	nop
-	mov eax, 100000
-	mul dword param_ns(0)
-.loop:
-	dec eax
-	cmp eax, 0x0
-	jne .loop
-	ret
 
 end:
 

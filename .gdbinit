@@ -49,6 +49,11 @@ define dbg-os
 	b segment_overflow_handler
 	b gp_fault_handler
 	b security_exception_handler
+	
+	b irq_rtc_handler
+	b ktime_ontick
+	b kinit_init_timer
+	b kexec_verify_architecture
 end
 
 define connect

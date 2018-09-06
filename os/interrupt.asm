@@ -15,6 +15,10 @@ PIC1_DATA EQU PIC1+1
 PIC2_COMMAND EQU PIC2
 PIC2_DATA EQU PIC2+1
 
+INTERRUPT_TASK_GATE EQU 0x5
+INTERRUPT_IRQ_GATE EQU 0xE
+INTERRUPT_TRAP_GATE EQU 0xF
+
 ICW1_DISABLE EQU 0xFF ; Interrupt command word: initialization
 
 extern vid_clear
@@ -29,7 +33,19 @@ extern vid_advance_line
 ; Parameters: 1=vector, 2=handler
 %macro set_trap_handler 2
 	push %1
-	push 0xF
+	push INTERRUPT_TRAP_GATE
+	push %2
+	call install_interrupt_handler
+	clear_stack_ns(3)
+%endmacro
+
+; macro: set_irq_handler
+; Installs a IRQ interrupt handler
+;
+; Parameters: 1=vector, 2=handler
+%macro set_irq_handler 2
+	push %1
+	push INTERRUPT_IRQ_GATE
 	push %2
 	call install_interrupt_handler
 	clear_stack_ns(3)
@@ -48,6 +64,9 @@ init_interrupt:
 	set_trap_handler 0xC, segment_overflow_handler		; stack segment fault
 	set_trap_handler 0xD, gp_fault_handler				; general protection fault
 	set_trap_handler 0x1E, security_exception_handler	; security exception (??)
+	
+	; set-up interrupt handler for:
+	set_irq_handler 0x8, irq_rtc_handler				; IRQ 8, RTC
 	
 	; load table
 	lidt [idt_desc]
@@ -223,6 +242,33 @@ global security_exception_handler
 security_exception_handler:
 mov eax, eax
 create_halt_trap_handler exSecurityExMsg
+
+RTC_ADDR EQU 0x70
+CMOS_ADDR EQU 0x71
+
+; irq_rtc_handler
+; Handler for IRQ 8 interrupts
+;
+irq_rtc_handler:
+	cli
+	
+	pushad
+	
+	; Acknowledge interrupt, or it won't fire again
+	push eax
+	mov eax, 0x0C
+	out RTC_ADDR, eax ; register C
+	in eax, CMOS_ADDR ; read, but discard
+	pop eax
+	
+	; Call actual handler
+	extern ktime_ontick
+	call ktime_ontick 
+	
+	popad
+	
+	sti
+	iret
 
 section .data
 
