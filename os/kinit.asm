@@ -137,7 +137,7 @@ kexec_verify_architecture:
 	
 	clear_stack_ns(5) ; 4 pushes, 1 pointer push(eax)
 	
-	;jmp .check_long_mode_support
+	jmp .check_long_mode_support
 	jmp .done
 	
 .check_long_mode_support:

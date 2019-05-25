@@ -32,7 +32,7 @@ define dbg-bootloader
 end
 
 define dbg-os
-	set architecture i386:intel
+	set architecture i386:x86-64:intel
 	symbol-file build/os/os
 	layout split
 	#b kinit
