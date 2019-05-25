@@ -52,12 +52,18 @@ define dbg-os
 	
 	b irq_rtc_handler
 	b ktime_ontick
-	b kinit_init_timer
-	b kexec_verify_architecture
+	#b kinit_init_timer
+	#b kexec_verify_architecture
+	b sleep
 end
 
 define connect
 	target remote localhost:26000
+end
+
+define kern_tick_count
+	# Known location of tick_timer_count (is there a better way?)
+	x/1dw 0x11b6
 end
 
 set write on

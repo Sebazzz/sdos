@@ -4,22 +4,23 @@
 
 [bits 32]
 %include "../macro.incl.asm"
+%include "../hwport.incl.asm"
 
 IDT_BASE_HIGH_OFFSET EQU 6
-
-PIC1 EQU 0x20
-PIC2 EQU 0xA0
-
-PIC1_COMMAND EQU PIC1
-PIC1_DATA EQU PIC1+1
-PIC2_COMMAND EQU PIC2
-PIC2_DATA EQU PIC2+1
 
 INTERRUPT_TASK_GATE EQU 0x5
 INTERRUPT_IRQ_GATE EQU 0xE
 INTERRUPT_TRAP_GATE EQU 0xF
 
 ICW1_DISABLE EQU 0xFF ; Interrupt command word: initialization
+ICW1_ICW4 EQU 0x01 ; Interrupt command word: ICW4 (not) needed
+ICW1_SINGLE EQU 0x02 ; Interrupt command word: Single (cascade) mode
+ICW1_INTERVAL4 EQU 0x04 ; Interrupt command word: Call address interval 4 (8)
+ICW1_LEVEL EQU 0x08 ; Interrupt command word: Level triggered (edge) mode
+ICW1_INIT EQU 0x10 ; Interrupt command word: Initialization - required!
+
+ICW4_8086 EQU 0x01 ; Interrupt command word: 8086/88 (MCS-80/85) mode
+
 
 extern vid_clear
 extern vid_set_attribute
@@ -39,6 +40,11 @@ extern vid_advance_line
 	clear_stack_ns(3)
 %endmacro
 
+; Wait for I/O operation to complete
+%macro io_wait 0
+out 0x80, eax
+%endmacro
+
 ; macro: set_irq_handler
 ; Installs a IRQ interrupt handler
 ;
@@ -50,6 +56,34 @@ extern vid_advance_line
 	call install_interrupt_handler
 	clear_stack_ns(3)
 %endmacro
+
+; nmi_enable
+; Enable non-maskable interrupt
+global nmi_enable
+nmi_enable:
+	; Use eax as scratch register
+	push eax
+	
+	in eax, RTC_ADDR
+	and eax, 0x7F
+	out RTC_ADDR, eax
+	
+	pop eax
+	ret
+
+; nmi_enable
+; Disable non-maskable interrupt
+global nmi_disable
+nmi_disable:
+	; Use eax as scratch register
+	push eax
+	
+	in eax, RTC_ADDR
+	or eax, 0x80
+	out RTC_ADDR, eax
+	
+	pop eax
+	ret
 
 ; init_interrupt
 ; Set up the interrupt table and enables interrupts
@@ -79,9 +113,52 @@ init_interrupt:
 ; on reserved interrupt IDs (0-7), but above (higher than 0x1F)
 setup_pic:
 	; Start init sequence
-	mov al, ICW1_DISABLE
-	out PIC2_DATA, al
-	out PIC1_DATA, al
+	
+	in eax, PIC2_DATA ; preserve masks
+	push eax
+	
+	in eax, PIC1_DATA
+	push eax
+	
+	mov eax, ICW1_INIT
+	or eax, ICW1_ICW4
+	
+	out PIC1_DATA, eax ; starts the initialization sequence (in cascade mode)
+	io_wait
+	
+	out PIC2_DATA, eax
+	io_wait
+	
+	mov eax, 0x20
+	out PIC1_DATA, eax ; ICW2: Master PIC vector offset
+	io_wait
+	
+	mov eax, 0x28
+	out PIC2_DATA, eax ; ICW2: Slave PIC vector offset
+	io_wait
+	
+	mov eax, 0x4
+	out PIC1_DATA, eax ; ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	io_wait
+	
+	mov eax, 0x2
+	out PIC2_DATA, eax ; ICW3: tell Slave PIC its cascade identity (0000 0010)
+	io_wait
+	
+	mov eax, ICW4_8086
+	out PIC1_DATA, eax
+	io_wait
+	
+	mov eax, ICW4_8086
+	out PIC1_DATA, eax
+	io_wait
+	
+	; restore masks
+	pop eax
+	out PIC1_DATA, eax
+	
+	pop eax
+	out PIC2_DATA, eax
 	
 	ret
 
@@ -243,9 +320,6 @@ security_exception_handler:
 mov eax, eax
 create_halt_trap_handler exSecurityExMsg
 
-RTC_ADDR EQU 0x70
-CMOS_ADDR EQU 0x71
-
 ; irq_rtc_handler
 ; Handler for IRQ 8 interrupts
 ;
@@ -254,16 +328,16 @@ irq_rtc_handler:
 	
 	pushad
 	
-	; Acknowledge interrupt, or it won't fire again
-	push eax
-	mov eax, 0x0C
-	out RTC_ADDR, eax ; register C
-	in eax, CMOS_ADDR ; read, but discard
-	pop eax
-	
-	; Call actual handler
+		; Call actual handler
 	extern ktime_ontick
 	call ktime_ontick 
+	
+	; Acknowledge interrupt, or it won't fire again
+	;push eax
+	;mov eax, 0x0C
+	;out RTC_ADDR, eax ; register C
+	;in eax, CMOS_ADDR ; read, but discard
+	;pop eax
 	
 	popad
 	

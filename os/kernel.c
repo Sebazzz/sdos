@@ -27,6 +27,11 @@ void kmain() {
 	vid_print_string("And wrapped!");
 	vid_advance_line();
 	
+	while (1) {
+		vid_print_string(". ");
+		sleep(1000);
+	}
+	
 	vga_color colors[] = {vga_color_red, vga_color_magenta, vga_color_light_cyan, vga_color_light_green};
 	const char* strings[] = {"Scrolling #1", "Scrolling #2", "Scrolling #3", "Scrolling #4"};
 	

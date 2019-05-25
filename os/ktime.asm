@@ -4,23 +4,21 @@
 
 [bits 32]
 %include "../macro.incl.asm"
+%include "../hwport.incl.asm"
 
-RTC_ADDR EQU 0x70
-CMOS_ADDR EQU 0x71
-
-global sleep_ticks
-global sleep
-global kinit_init_timer
-global kinit_enable_timer
-global ktime_ontick
+extern nmi_enable
+extern nmi_disable
 
 ; kinit_init_timer
 ; Initializes the RTC
 ;
 ; Input: nothing
 ; Output: nothing
+global kinit_init_timer
 kinit_init_timer:
 	cli ; we expect this to be called with interrupts off, but never mind retrying this
+	
+	call nmi_disable
 	
 	; Using eax as scratch register
 	push eax
@@ -31,6 +29,8 @@ kinit_init_timer:
 	out CMOS_ADDR, eax
 	pop eax
 	
+	call nmi_enable
+	
 	ret
 
 ; kinit_enable_timer
@@ -38,6 +38,7 @@ kinit_init_timer:
 ;
 ; Input: nothing
 ; Output: nothing
+global kinit_enable_timer
 kinit_enable_timer:
 	cli
 	
@@ -58,6 +59,12 @@ kinit_enable_timer:
 	or eax, 0x40
 	out CMOS_ADDR, eax
 	
+	; Acknowledge interrupt, or it won't fire again
+	mov eax, 0x0C
+	out RTC_ADDR, eax ; register C
+	in eax, CMOS_ADDR ; read, but discard
+	
+	; end eax as scratch register
 	pop eax
 	
 	sti
@@ -68,6 +75,7 @@ kinit_enable_timer:
 ;
 ; Input: nothing
 ; Output: nothing
+global ktime_ontick
 ktime_ontick:
 	nop
 	lea eax, [tick_timer_count]
@@ -78,19 +86,26 @@ ktime_ontick:
 ; sleep
 ; sleep_ticks
 ; Sleeps for a number of ticks (DOES NOT WORK YET ACCURATELY)
-; One tick is 1024Hz. May not be accure for a low number of ticks.
+; One tick every 1/1024 second. May not be accure for a low number of ticks.
 ;
 ; Input: unsigned int ticks
 ; Output: nothing
+global sleep
+global sleep_ticks
 sleep:
 sleep_ticks:
 	nop
-	mov eax, 100000
-	mul dword param_ns(0)
+	
+	; eax contains the target tick timer count
+	push eax
+	mov eax, param_ns(1)
+	add eax, [tick_timer_count]
+
 .loop:
-	dec eax
-	cmp eax, 0x0
-	jne .loop
+	cmp eax, [tick_timer_count]
+	jg .loop
+	
+	pop eax
 	ret
 
 section .data:
