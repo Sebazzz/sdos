@@ -21,6 +21,11 @@ ICW1_INIT EQU 0x10 ; Interrupt command word: Initialization - required!
 
 ICW4_8086 EQU 0x01 ; Interrupt command word: 8086/88 (MCS-80/85) mode
 
+PIC_IRQ0_OFFSET EQU 0x20
+PIC_IRQ8_OFFSET EQU 0x28
+PIC_EOI EQU 0x20
+
+RTC_IRQ EQU PIC_IRQ8_OFFSET
 
 extern vid_clear
 extern vid_set_attribute
@@ -40,11 +45,6 @@ extern vid_advance_line
 	clear_stack_ns(3)
 %endmacro
 
-; Wait for I/O operation to complete
-%macro io_wait 0
-out 0x80, eax
-%endmacro
-
 ; macro: set_irq_handler
 ; Installs a IRQ interrupt handler
 ;
@@ -55,6 +55,20 @@ out 0x80, eax
 	push %2
 	call install_interrupt_handler
 	clear_stack_ns(3)
+%endmacro
+
+; macro: issue_end_of_interrupt
+; Issue an "end of interrupt" to the PIC
+;
+; Parameters: 1=IRQ number
+%macro issue_end_of_interrupt 1
+push eax
+mov eax, PIC_EOI
+%if %1>=8
+out PIC2_COMMAND, al
+%endif
+out PIC1_COMMAND, al
+pop eax
 %endmacro
 
 ; nmi_enable
@@ -100,10 +114,17 @@ init_interrupt:
 	set_trap_handler 0x1E, security_exception_handler	; security exception (??)
 	
 	; set-up interrupt handler for:
-	set_irq_handler 0x8, irq_rtc_handler				; IRQ 8, RTC
+	;set_irq_handler 0x8, irq_rtc_handler				; IRQ 8, RTC
+	;set_irq_handler PIC_IRQ0_OFFSET, irq_rtc_handler				; IRQ 8, RTC
+	set_irq_handler RTC_IRQ, irq_rtc_handler				; IRQ 8, RTC
 	
 	; load table
 	lidt [idt_desc]
+	
+	mov eax, 0x8
+	push eax
+	call pic_enable_interrupt
+	pop eax
 	
 	sti					; Enable interrupts
 	ret
@@ -113,52 +134,95 @@ init_interrupt:
 ; on reserved interrupt IDs (0-7), but above (higher than 0x1F)
 setup_pic:
 	; Start init sequence
+		
+	mov al, ICW1_INIT
+	or al, ICW1_ICW4
 	
-	in eax, PIC2_DATA ; preserve masks
-	push eax
-	
-	in eax, PIC1_DATA
-	push eax
-	
-	mov eax, ICW1_INIT
-	or eax, ICW1_ICW4
-	
-	out PIC1_DATA, eax ; starts the initialization sequence (in cascade mode)
+	out PIC1_COMMAND, al ; starts the initialization sequence (in cascade mode)
 	io_wait
 	
-	out PIC2_DATA, eax
+	out PIC2_COMMAND, al
 	io_wait
 	
-	mov eax, 0x20
-	out PIC1_DATA, eax ; ICW2: Master PIC vector offset
+	mov al, PIC_IRQ0_OFFSET
+	out PIC1_DATA, al ; ICW2: Master PIC vector offset
 	io_wait
 	
-	mov eax, 0x28
-	out PIC2_DATA, eax ; ICW2: Slave PIC vector offset
+	mov al, PIC_IRQ8_OFFSET
+	out PIC2_DATA, al ; ICW2: Slave PIC vector offset
 	io_wait
 	
-	mov eax, 0x4
-	out PIC1_DATA, eax ; ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	mov al, 0x4
+	out PIC1_DATA, al ; ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
 	io_wait
 	
+	mov al, 0x2
+	out PIC2_DATA, al ; ICW3: tell Slave PIC its cascade identity (0000 0010)
+	io_wait
+	
+	mov al, ICW4_8086
+	out PIC1_DATA, al
+	io_wait
+	
+	mov al, ICW4_8086
+	out PIC1_DATA, al
+	io_wait
+	
+	; disable IRQs
+	mov al, 0x00
+	out PIC1_DATA, al
+	out PIC2_DATA, al
+	
+	; enable IRQ2
 	mov eax, 0x2
-	out PIC2_DATA, eax ; ICW3: tell Slave PIC its cascade identity (0000 0010)
-	io_wait
-	
-	mov eax, ICW4_8086
-	out PIC1_DATA, eax
-	io_wait
-	
-	mov eax, ICW4_8086
-	out PIC1_DATA, eax
-	io_wait
-	
-	; restore masks
+	push eax
+	call pic_enable_interrupt
 	pop eax
-	out PIC1_DATA, eax
+
+	ret
+
+; pic_enable_interrupt: Enable interrupt number on the PIC
+; pic_disable_interrupt: Disable interrupt number on the PIC
+; 
+; Input: interrupt number (char)
+; Output: Nothing
+;	
+PIC2_INTERRUPT_OFFSET EQU 8
+pic_disable_interrupt:
+	mov edx, PIC1_DATA
+	mov eax, param_ns(0)
 	
-	pop eax
-	out PIC2_DATA, eax
+	cmp eax, PIC2_INTERRUPT_OFFSET
+	jb .output_data
+	
+	; if interrupt >= 8, choose PIC 2
+	mov edx, PIC2_DATA
+	sub eax, PIC2_INTERRUPT_OFFSET
+	
+	.output_data:
+	mov ecx, eax
+	in al, dx	; get interrupt mask
+	bts eax, ecx
+	out dx, al  ; write register
+	
+	ret
+	
+pic_enable_interrupt:
+	mov edx, PIC1_DATA
+	mov eax, param_ns(0)
+	
+	cmp eax, PIC2_INTERRUPT_OFFSET
+	jb .output_data
+	
+	; if interrupt >= 8, choose PIC 2
+	mov edx, PIC2_DATA
+	sub eax, PIC2_INTERRUPT_OFFSET
+	
+	.output_data:
+	mov ecx, eax
+	in al, dx	; get interrupt mask
+	btr eax, ecx
+	out dx, al  ; write register
 	
 	ret
 
@@ -185,7 +249,7 @@ install_interrupt_handler:
 	mov [eax + IDT_HANDLER_HIGH_OFFSET], dx		; set handler low offset
 	
 	mov dl, param_ns(1)							; type
-	or dl, 0b1000_0000							; set as actived
+	or dl, 0b1000_0000							; set as active
 	mov [eax + IDT_HANDLER_TYPE_OFFSET], dl		; set type
 	
 	mov [eax + IDT_SEG_OFFSET], cs				; set segment
@@ -328,16 +392,18 @@ irq_rtc_handler:
 	
 	pushad
 	
-		; Call actual handler
+	; Call actual handler
 	extern ktime_ontick
 	call ktime_ontick 
 	
 	; Acknowledge interrupt, or it won't fire again
-	;push eax
-	;mov eax, 0x0C
-	;out RTC_ADDR, eax ; register C
-	;in eax, CMOS_ADDR ; read, but discard
-	;pop eax
+	push eax
+	mov al, 0x0C
+	out RTC_ADDR, al ; register C
+	in al, CMOS_ADDR ; read, but discard
+	pop eax
+	
+	issue_end_of_interrupt 8
 	
 	popad
 	
@@ -373,7 +439,7 @@ idt_desc: 					; The GDT descriptor
 
 section .rodata
 exMsg db "@@ System execution error - CPU exception", 0
-exDivideMsg db "Divide by zero", 0
+exDivideMsg db "Divide by zero or result too large", 0
 exDfMsg db "Double fault", 0
 exSegmentMsg db "Segment not present", 0
 exStSegOverflowMsg db "Stack Segment Overflow", 0

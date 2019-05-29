@@ -28,7 +28,7 @@ void kmain() {
 	vid_advance_line();
 	
 	while (1) {
-		vid_print_string(". ");
+		vid_print_string(". -");
 		sleep(1000);
 	}
 	

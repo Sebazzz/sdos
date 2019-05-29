@@ -52,7 +52,8 @@ define dbg-os
 	
 	b irq_rtc_handler
 	b ktime_ontick
-	b setup_pic
+	# b setup_pic
+	b pic_enable_interrupt
 	#b kinit_init_timer
 	#b kexec_verify_architecture
 	#b sleep

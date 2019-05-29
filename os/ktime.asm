@@ -45,24 +45,26 @@ kinit_enable_timer:
 	; Using eax as scratch register
 	push eax
 	
-	mov eax, 0x8B
-	out RTC_ADDR, eax  ;select register B, and disable NMI
-	
-	in eax, CMOS_ADDR   ;read the current value of register B
+	mov al, 0x8B
+	out RTC_ADDR, al  ;select register B, and disable NMI
+	io_wait
+	in al, CMOS_ADDR   ;read the current value of register B
 	
 	push eax ; save eax, it is the only register we can use for in/out instructions
-	mov eax, 0x8B
-	out RTC_ADDR, eax  ;set the index again (a read will reset the index to register D)
+	mov al, 0x8B
+	out RTC_ADDR, al  ;set the index again (a read will reset the index to register D)
 	pop eax  ; restore eax, it contains the current value of register B
+	io_wait
 	
 	; turn on bit 6
-	or eax, 0x40
-	out CMOS_ADDR, eax
+	or al, 0x40
+	out CMOS_ADDR, al
 	
 	; Acknowledge interrupt, or it won't fire again
-	mov eax, 0x0C
-	out RTC_ADDR, eax ; register C
-	in eax, CMOS_ADDR ; read, but discard
+	mov al, 0x0C
+	out RTC_ADDR, al ; register C
+	io_wait
+	in al, CMOS_ADDR ; read, but discard
 	
 	; end eax as scratch register
 	pop eax
