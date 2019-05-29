@@ -1,7 +1,8 @@
-define hook-stop
+define hook-stop_
 	# Translate the segment:offset into a physical address 
-	printf "[%4x:%4x] ", $cs, $eip
-	x/i $cs*16+$eip
+	printf "[%4x:%4x] ", $cs, $rip
+	x/i $cs*16+$rip
+	refresh
 end
 
 define exit
@@ -41,8 +42,7 @@ define dbg-os
 	b kexec_done.done
 	
 	# Set-up breakpoints in the respective handlers
-	b init_interrupt
-	#b sleep
+	#b init_interrupt
 	b divide_by_zero_handler
 	b segment_np_handler
 	b double_fault_handler
@@ -52,9 +52,10 @@ define dbg-os
 	
 	b irq_rtc_handler
 	b ktime_ontick
+	b setup_pic
 	#b kinit_init_timer
 	#b kexec_verify_architecture
-	b sleep
+	#b sleep
 end
 
 define connect
@@ -63,7 +64,7 @@ end
 
 define kern_tick_count
 	# Known location of tick_timer_count (is there a better way?)
-	x/1dw 0x11b6
+	x/1dw &tick_timer_count
 end
 
 set write on
