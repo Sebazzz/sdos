@@ -68,14 +68,15 @@ define dbg-os
 	
 	b irq_rtc_handler
 	# b irq_pit_handler
-	b ktime_ontick
-	b setup_pic
+	# b ktime_ontick
+	# b setup_pic
 	# b pic_enable_interrupt
 	b spurious_irq_handler
-	b setup_pit
+	# b setup_pit
 	#b kinit_init_timer
 	#b kexec_verify_architecture
 	#b sleep
+	b keyboard_handler
 end
 
 define connect
