@@ -13,6 +13,8 @@ PIC1_DATA EQU PIC1+1
 PIC2_COMMAND EQU PIC2
 PIC2_DATA EQU PIC2+1
 
+KDB_PS2_ADDR EQU 0x60
+
 ; Wait for I/O operation to complete
 %macro io_wait 0
 out 0x80, eax

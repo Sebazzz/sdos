@@ -4,7 +4,7 @@ BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.o
 OS=$(BUILD_DIR)/os/os
 DISK_IMG=$(BUILD_DIR)/disk.img
 QEMU=qemu-system-x86_64
-QEMUFLAGS=-machine q35 -cpu core2duo -rtc base=localtime,clock=vm -drive format=raw,index=0,if=floppy,file=$(DISK_IMG) -m 512M -gdb tcp::26000
+QEMUFLAGS=-machine q35 -machine kernel-irqchip=off -monitor stdio -cpu core2duo -show-cursor -device virtio-mouse -rtc base=localtime,clock=vm -drive format=raw,index=0,if=floppy,file=$(DISK_IMG) -m 512M -gdb tcp::26000
 
 all: bootdisk
 

@@ -85,6 +85,10 @@ define kern_tick_count
 	x/1dw &tick_timer_count
 end
 
+define kern_kdb_input
+	x/1dw &last_scancode
+end
+
 set write on
 #dbg-bootloader
 dbg-os

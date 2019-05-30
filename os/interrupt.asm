@@ -25,13 +25,16 @@ PIC_IRQ0_OFFSET EQU 0x20
 PIC_IRQ8_OFFSET EQU 0x28
 PIC_EOI EQU 0x20
 
-RTC_IRQ EQU PIC_IRQ8_OFFSET
+PIC_PIT_IRQ0 EQU PIC_IRQ0_OFFSET
+PIC_KDB_IRQ1 EQU PIC_IRQ0_OFFSET + 1
+PIC_RTC_IRQ8 EQU PIC_IRQ8_OFFSET
 
 extern vid_clear
 extern vid_set_attribute
 extern vid_print_string
 extern vid_print_string_line
 extern vid_advance_line
+extern keyboard_handler
 
 ; macro: set_trap_handler
 ; Installs a trap interrupt handler
@@ -71,6 +74,17 @@ out PIC1_COMMAND, al
 pop eax
 %endmacro
 
+; macro: pic_enable_interrupt_inline
+; Enable the specified interrupt (0 - 15 inclusive)
+;
+; Parameters: 1=IRQ number
+%macro pic_enable_interrupt_inline 1
+mov eax, %1
+push eax
+call pic_enable_interrupt
+pop eax
+%endmacro
+
 ; nmi_enable
 ; Enable non-maskable interrupt
 global nmi_enable
@@ -103,7 +117,7 @@ nmi_disable:
 ; Set up the interrupt table and enables interrupts
 global init_interrupt
 init_interrupt:
-	call setup_pic
+	
 	
 	; set-up exception handler for:
 	set_trap_handler 0x0, divide_by_zero_handler		; divide by zero
@@ -114,27 +128,41 @@ init_interrupt:
 	set_trap_handler 0x1E, security_exception_handler	; security exception (??)
 	
 	; set-up interrupt handler for:
-	;set_irq_handler 0x8, irq_rtc_handler				; IRQ 8, RTC
-	;set_irq_handler PIC_IRQ0_OFFSET, irq_rtc_handler				; IRQ 8, RTC
-	set_irq_handler RTC_IRQ, irq_rtc_handler				; IRQ 8, RTC
+	set_irq_handler PIC_PIT_IRQ0, irq_pit_handler
+	set_irq_handler PIC_KDB_IRQ1, irq_kbd_handler
+	set_irq_handler PIC_RTC_IRQ8, irq_rtc_handler
 	
 	; load table
 	lidt [idt_desc]
 	
-	mov eax, 0x8
-	push eax
-	call pic_enable_interrupt
-	pop eax
+	; enable interrupt 8 - IRQ
+	call setup_pic
 	
-	sti					; Enable interrupts
+	; Enable interrupts
+	sti
+	
+	; Unmask interrupts
+	pic_enable_interrupt_inline 0 ; PIT
+	pic_enable_interrupt_inline 1 ; keyboard
+	pic_enable_interrupt_inline 2 ; PIC Slave to PIC Master
+	pic_enable_interrupt_inline 8 ; IRQ
+	pic_enable_interrupt_inline 12 ; Mouse
+	
 	ret
+	
+spurious_irq_handler:
+	nop
+	nop
+	iret
 
 ; setup_pic
 ; Internal routine to set-up the pic so it won't trigger IRQ
 ; on reserved interrupt IDs (0-7), but above (higher than 0x1F)
 setup_pic:
 	; Start init sequence
-		
+	; ref: http://www.brokenthorn.com/Resources/OSDevPic.html
+	
+	; 0x11
 	mov al, ICW1_INIT
 	or al, ICW1_ICW4
 	
@@ -145,39 +173,36 @@ setup_pic:
 	io_wait
 	
 	mov al, PIC_IRQ0_OFFSET
-	out PIC1_DATA, al ; ICW2: Master PIC vector offset
+	out PIC1_DATA, al ; ICW2: Master PIC vector offset; IRQ 0 is now mapped to interrupt number 0x20
 	io_wait
 	
 	mov al, PIC_IRQ8_OFFSET
-	out PIC2_DATA, al ; ICW2: Slave PIC vector offset
+	out PIC2_DATA, al ; ICW2: Slave PIC vector offset; IRQ 8 is now mapped to use interrupt 0x28
 	io_wait
 	
-	mov al, 0x4
-	out PIC1_DATA, al ; ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	mov al, 0b0000_0100
+	out PIC1_DATA, al ; ICW3: tell Master PIC that there is a slave PIC at IRQ2
 	io_wait
 	
-	mov al, 0x2
-	out PIC2_DATA, al ; ICW3: tell Slave PIC its cascade identity (0000 0010)
-	io_wait
-	
-	mov al, ICW4_8086
-	out PIC1_DATA, al
+	mov al, 0b0000_0010
+	out PIC2_DATA, al ; ICW3: tell Slave PIC its cascade identity
 	io_wait
 	
 	mov al, ICW4_8086
 	out PIC1_DATA, al
 	io_wait
 	
-	; disable IRQs
-	mov al, 0x00
+	mov al, ICW4_8086
+	out PIC2_DATA, al
+	io_wait
+	
+	; disable IRQs to start with
+	mov al, 0xFF
 	out PIC1_DATA, al
 	out PIC2_DATA, al
 	
-	; enable IRQ2
-	mov eax, 0x2
-	push eax
-	call pic_enable_interrupt
-	pop eax
+	; enable IRQ2 for slave passthrough
+	pic_enable_interrupt_inline 2
 
 	ret
 
@@ -383,6 +408,41 @@ global security_exception_handler
 security_exception_handler:
 mov eax, eax
 create_halt_trap_handler exSecurityExMsg
+
+; irq_pit_handler
+; Handler for IRQ 0 interrupts
+;
+irq_pit_handler:
+	cli
+	
+	pushad
+	
+	; TODO: Call actual handler ?	
+	
+	; Acknowledge interrupt, or it won't fire again	
+	issue_end_of_interrupt 0
+	
+	popad
+	
+	sti
+	iret
+
+; irq_kbd_handler
+; Handler for IRQ 1 keyboard input
+;
+irq_kbd_handler:
+	cli
+	
+	pushad
+	
+	call keyboard_handler
+	
+	issue_end_of_interrupt 1
+	
+	popad
+	
+	sti
+	iret
 
 ; irq_rtc_handler
 ; Handler for IRQ 8 interrupts
