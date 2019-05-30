@@ -15,6 +15,10 @@ PIC2_DATA EQU PIC2+1
 
 KDB_PS2_ADDR EQU 0x60
 
+PIT_CHANNEL0 EQU 0x40
+PIT_COMMAND EQU 0x43
+PIT_DESIRED_FREQ EQU 1000
+
 ; Wait for I/O operation to complete
 %macro io_wait 0
 out 0x80, eax

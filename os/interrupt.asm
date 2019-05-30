@@ -417,7 +417,9 @@ irq_pit_handler:
 	
 	pushad
 	
-	; TODO: Call actual handler ?	
+	; Call actual handler
+	extern ktime_pit_ontick
+	call ktime_pit_ontick 
 	
 	; Acknowledge interrupt, or it won't fire again	
 	issue_end_of_interrupt 0
@@ -453,8 +455,8 @@ irq_rtc_handler:
 	pushad
 	
 	; Call actual handler
-	extern ktime_ontick
-	call ktime_ontick 
+	extern ktime_rtc_ontick
+	call ktime_rtc_ontick 
 	
 	; Acknowledge interrupt, or it won't fire again
 	push eax

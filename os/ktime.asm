@@ -72,45 +72,119 @@ kinit_enable_timer:
 	sti
 	ret
 
-; ktime_ontick
-; Internal kernel method called on a tick. Increases internal timer.
+; ktime_rtc_ontick
+; Internal kernel method called on a tick from the RTC. Increases internal timer.
 ;
 ; Input: nothing
 ; Output: nothing
-global ktime_ontick
-ktime_ontick:
+global ktime_rtc_ontick
+ktime_rtc_ontick:
 	nop
-	lea eax, [tick_timer_count]
+	lea eax, [rtc_tick_timer_count]
 	inc dword [eax]
 	nop
 	ret
+	
+; ktime_pit_ontick
+; Internal kernel method called on a tick from the PIT. Increases internal timer.
+;
+; Input: nothing
+; Output: nothing
+global ktime_pit_ontick
+ktime_pit_ontick:
+	nop
+
+	mov eax, [pit_ms_between_irq]
+	add [pit_tick_timer_ms_count], eax
+	
+	nop
+	ret
+	
+; ktime_pit_init
+; Initialize the program interrupt timer
+;
+; Input: nothing
+; Output: nothing
+global ktime_pit_init
+ktime_pit_init:
+	; Setup PIT with PIT_DESIRED_FREQ
+	mov ebx, PIT_DESIRED_FREQ
+	call setup_pit
+	ret
+
+; setup_pit
+; Set-up the pit with a desired frequency
+;
+; Input: desired frequency in hz (ebx)
+; Output: nothing
+PIT_RLD_MAX EQU 3579545
+setup_pit:
+	pushad
+	
+	mov edx, 0
+	mov [pit_frequency], bx
+	mov eax, 1193180 
+	div ebx
+	
+	push eax
+	mov eax, 0x43
+	out PIT_COMMAND, al	
+	pop eax
+	
+	push eax
+	and eax, 0xFF
+	out PIT_CHANNEL0, al
+	pop eax
+	
+	push eax
+	shr eax, 8
+	out PIT_CHANNEL0, al
+	pop eax
+	
+	mov eax, ebx
+	mov ebx, 1000
+	mov edx, 0
+	div ebx
+	
+	mov [pit_ms_between_irq], ax
+	
+	popad
+	
+	ret
 
 ; sleep
-; sleep_ticks
-; Sleeps for a number of ticks (DOES NOT WORK YET ACCURATELY)
-; One tick every 1/1024 second. May not be accure for a low number of ticks.
+; sleep_ms
+; Sleeps for a number of milliseconds (DOES NOT WORK YET ACCURATELY)
 ;
 ; Input: unsigned int ticks
 ; Output: nothing
 global sleep
-global sleep_ticks
+global sleep_ms
 sleep:
-sleep_ticks:
+sleep_ms:
 	nop
 	
 	; eax contains the target tick timer count
 	push eax
 	mov eax, param_ns(1)
-	add eax, [tick_timer_count]
+	add eax, [pit_tick_timer_ms_count]
+	jmp .loop
 
+.loop_wait:
+	hlt
+	
 .loop:
-	cmp eax, [tick_timer_count]
-	jg .loop
+	cmp eax, [pit_tick_timer_ms_count]
+	jg .loop_wait
 	
 	pop eax
 	ret
 
 section .data:
 
-tick_timer_count:
-dd 0x0
+rtc_tick_timer_count: dd 0x0
+pit_tick_timer_ms_count: dd 0x0
+
+pit_reload_value: dw 0
+pit_frequency: dd 0
+pit_ms_between_irq: dd 0

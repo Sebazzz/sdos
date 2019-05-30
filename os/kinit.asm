@@ -70,6 +70,9 @@ kinit:
 	
 	nop
 	
+	extern ktime_pit_init
+	call ktime_pit_init
+	
 	nop
 	nop
 	nop

@@ -67,10 +67,12 @@ define dbg-os
 	b security_exception_handler
 	
 	b irq_rtc_handler
+	# b irq_pit_handler
 	b ktime_ontick
 	b setup_pic
 	# b pic_enable_interrupt
 	b spurious_irq_handler
+	b setup_pit
 	#b kinit_init_timer
 	#b kexec_verify_architecture
 	#b sleep
@@ -80,9 +82,12 @@ define connect
 	target remote localhost:26000
 end
 
-define kern_tick_count
-	# Known location of tick_timer_count (is there a better way?)
-	x/1dw &tick_timer_count
+define kern_rtc_tick_count
+	x/1dw &rtc_tick_timer_count
+end
+
+define kern_pit_tick_count
+	x/1dw &pit_tick_timer_ms_count
 end
 
 define kern_kdb_input
