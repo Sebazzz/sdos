@@ -123,6 +123,11 @@ kexec_verify_architecture:
 	jmp kexec_verify_architecture_failed
 	
 .print_vendor_string:
+	; CPU vendor message
+	push cpuVendorMsg
+	call vid_print_string
+	clear_stack_ns(1)
+	
 	; Get the CPU vendor string
 	mov eax, CPUID_GETVENDORSTRING
 	cpuid
@@ -133,7 +138,7 @@ kexec_verify_architecture:
 	lea eax, [esp] ; Note that in reverse order the string is read, so we start at esp
 	push eax; argument for vid_print_string_line
 	
-	call vid_print_string_line
+	call vid_print_string
 	
 	clear_stack_ns(5) ; 4 pushes, 1 pointer push(eax)
 	
@@ -154,7 +159,7 @@ kexec_verify_architecture:
 
 .done:
 	push verifySuccessMsg
-	call vid_print_string
+	call vid_print_string_line
 	clear_stack_ns(1)
 	
 	ret
@@ -192,6 +197,7 @@ end:
 section .rodata
 endMsg db "@@ System execution completed - system shutdown", 0
 verifyMsg db "Verifying architecture...", 0
+cpuVendorMsg db "  CPU Vendor: ", 0
 verifyUnknownMsg db "Incapable CPU: no CPUID support", 0
 verifyFailedMsg db "Incapable CPU: does not support x64 (long mode)", 0
 verifySuccessMsg db "... success", 0

@@ -3,7 +3,15 @@
 const char* message = "Cee says hello!";
 
 void kmain() {
-	vid_print_string_line("Waiting for keyboard...");
+	vid_set_fg(vga_color_cyan);
+	vid_print_string_line("   _____  _____    ____    _____  ");
+	vid_print_string_line("  / ____||  __ \\  / __ \\  / ____| ");
+	vid_print_string_line(" | (___  | |  | || |  | || (___   ");
+	vid_print_string_line("  \\___ \\ | |  | || |  | | \\___ \\   Experimental OS");
+	vid_print_string_line("  ____) || |__| || |__| | ____) | ");
+	vid_print_string_line(" |_____/ |_____/  \\____/ |_____/  ");
+    vid_advance_line();
+	vid_advance_line();
 	
 	get_scancode();
 	
