@@ -2,14 +2,21 @@
 
 const char* message = "Cee says hello!";
 
+// It looks a bit messed up, but the backslashes need escaping
+const char* headerMessage = "\
+   _____  _____    ____    _____     \n\
+  / ____||  __ \\  / __ \\  / ____|  \n\
+ | (___  | |  | || |  | || (___      \n\
+  \\___ \\ | |  | || |  | | \\___ \\   Experimental OS \n\
+  ____) || |__| || |__| | ____) |    \n\
+ |_____/ |_____/  \\____/ |_____/      \
+"; 
+ 
+
+
 void header() {
 	vid_set_fg(vga_color_cyan);
-	vid_print_string_line("   _____  _____    ____    _____  ");
-	vid_print_string_line("  / ____||  __ \\  / __ \\  / ____| ");
-	vid_print_string_line(" | (___  | |  | || |  | || (___   ");
-	vid_print_string_line("  \\___ \\ | |  | || |  | | \\___ \\   Experimental OS");
-	vid_print_string_line("  ____) || |__| || |__| | ____) | ");
-	vid_print_string_line(" |_____/ |_____/  \\____/ |_____/  ");
+	vid_print_string_line(headerMessage);
     vid_advance_line();
 	vid_advance_line();
 }
