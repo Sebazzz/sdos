@@ -2,7 +2,7 @@
 
 const char* message = "Cee says hello!";
 
-void kmain() {
+void header() {
 	vid_set_fg(vga_color_cyan);
 	vid_print_string_line("   _____  _____    ____    _____  ");
 	vid_print_string_line("  / ____||  __ \\  / __ \\  / ____| ");
@@ -12,8 +12,15 @@ void kmain() {
 	vid_print_string_line(" |_____/ |_____/  \\____/ |_____/  ");
     vid_advance_line();
 	vid_advance_line();
-	
-	get_scancode();
+}
+
+void kmain() {
+	header();
+	vid_set_fg(vga_color_white);
+	vid_print_string("Press any key to continue...");
+	wait_key();
+	vid_clear();
+	header();
 	
 	vid_print_string_line(message);
 	

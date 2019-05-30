@@ -23,11 +23,32 @@ get_scancode:
 	; SystemV calling convention expects return value in eax
 	movzx eax, byte al
 	ret
+
+; wait_key
+; Waits for a key to be pressed before returning control
+;
+; Input: nothing
+; Output: nothing
+;
+global wait_key
+wait_key:
+	mov [last_scancode], dword 0
+	
+	push eax
+	
+.loop:
+	hlt	; wake up on interrupt
+	mov eax, [last_scancode]
+	cmp eax, 0
+	jz .loop
+	
+.done:
+	pop eax
+	ret
 	
 ; keyboard_handler
 ; Record the latest keyboard scan code
 ;
-
 global keyboard_handler
 keyboard_handler:
 	xor eax, eax
