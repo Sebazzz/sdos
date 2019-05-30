@@ -1,7 +1,23 @@
-define hook-stop_
+define hook-stop
 	# Translate the segment:offset into a physical address 
 	printf "[%4x:%4x] ", $cs, $rip
-	x/i $cs*16+$rip
+	x/i $rip
+	refresh
+end
+
+define hookpost-echo
+	refresh
+end
+
+define hookpost-continue
+	refresh
+end
+
+define hookpost-step
+	refresh
+end
+
+define hookpost-stepi
 	refresh
 end
 
@@ -52,8 +68,9 @@ define dbg-os
 	
 	b irq_rtc_handler
 	b ktime_ontick
-	# b setup_pic
-	b pic_enable_interrupt
+	b setup_pic
+	# b pic_enable_interrupt
+	b spurious_irq_handler
 	#b kinit_init_timer
 	#b kexec_verify_architecture
 	#b sleep
